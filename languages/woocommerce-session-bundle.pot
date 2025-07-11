@@ -1,0 +1,95 @@
+# Copyright (C) 2024 WooCommerce Session Bundle
+# This file is distributed under the GPL v2 or later.
+msgid ""
+msgstr ""
+"Project-Id-Version: WooCommerce Session Bundle 1.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/woocommerce-session-bundle\n"
+"POT-Creation-Date: 2024-01-01 00:00+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"PO-Revision-Date: 2024-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+
+#: woocommerce-session-bundle.php:75
+msgid "Session Bundle"
+msgstr ""
+
+#: includes/class-wc-session-bundle-admin.php:39
+msgid "Session Bundle Products"
+msgstr ""
+
+#: includes/class-wc-session-bundle-admin.php:59
+msgid "Quantity:"
+msgstr ""
+
+#: includes/class-wc-session-bundle-admin.php:67
+msgid "Remove"
+msgstr ""
+
+#: includes/class-wc-session-bundle-admin.php:73
+msgid "Search for products..."
+msgstr ""
+
+#: includes/class-wc-session-bundle-admin.php:76
+msgid "Add Product"
+msgstr ""
+
+#: includes/class-wc-session-bundle-admin.php:81
+msgid "Bundle Total:"
+msgstr ""
+
+#: includes/class-wc-session-bundle-admin.php:105
+msgid "Bundle Price"
+msgstr ""
+
+#: includes/class-wc-session-bundle-admin.php:107
+msgid "Set a custom price for the bundle (leave empty to calculate from bundled products)."
+msgstr ""
+
+#: includes/class-wc-product-session-bundle.php:80
+msgid "Bundle Contents:"
+msgstr ""
+
+#: includes/class-wc-session-bundle-frontend.php:65
+msgid "%d product"
+msgid_plural "%d products"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/class-wc-session-bundle-frontend.php:107
+msgid "This bundle includes:"
+msgstr ""
+
+#: includes/class-wc-session-bundle-frontend.php:140
+msgid "Bundle contents:"
+msgstr ""
+
+#: includes/class-wc-session-bundle-admin.php:180
+msgid "Select products..."
+msgstr ""
+
+#: includes/class-wc-session-bundle-admin.php:181
+msgid "Remove"
+msgstr ""
+
+#: includes/class-wc-session-bundle-admin.php:182
+msgid "Quantity:"
+msgstr ""
+
+#: includes/class-wc-session-bundle-admin.php:183
+msgid "Bundle Total:"
+msgstr ""
+
+#: includes/class-wc-session-bundle-admin.php:240
+msgid "This bundle is currently out of stock."
+msgstr ""
+
+#: includes/class-wc-session-bundle-admin.php:246
+msgid "Only %d bundles available in stock."
+msgstr ""
+
+#: woocommerce-session-bundle.php:95
+msgid "WooCommerce Session Bundle requires WooCommerce to be installed and active."
+msgstr "" 

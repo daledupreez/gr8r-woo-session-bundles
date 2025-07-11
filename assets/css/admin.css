@@ -1,0 +1,201 @@
+/**
+ * WooCommerce Session Bundle Admin Styles
+ */
+
+#session-bundle-products-container {
+    margin: 20px 0;
+    padding: 20px;
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.session-bundle-products-list {
+    margin-bottom: 20px;
+}
+
+.session-bundle-product-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px;
+    margin-bottom: 10px;
+    background: #fff;
+    border: 1px solid #e1e1e1;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.session-bundle-product-item:hover {
+    border-color: #0073aa;
+}
+
+.product-info {
+    flex: 1;
+    margin-right: 20px;
+}
+
+.product-title {
+    display: block;
+    font-weight: 600;
+    color: #23282d;
+    margin-bottom: 5px;
+}
+
+.product-price {
+    display: block;
+    color: #666;
+    font-size: 0.9em;
+}
+
+.product-quantity {
+    display: flex;
+    align-items: center;
+    margin-right: 15px;
+}
+
+.product-quantity label {
+    margin-right: 8px;
+    font-weight: 500;
+    color: #555;
+}
+
+.bundle-quantity-input {
+    width: 80px;
+    padding: 5px 8px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    text-align: center;
+}
+
+.bundle-quantity-input:focus {
+    border-color: #0073aa;
+    outline: none;
+    box-shadow: 0 0 0 1px #0073aa;
+}
+
+.remove-bundle-product {
+    padding: 5px 10px !important;
+    background: #dc3232 !important;
+    border-color: #dc3232 !important;
+    color: #fff !important;
+}
+
+.remove-bundle-product:hover {
+    background: #c92626 !important;
+    border-color: #c92626 !important;
+}
+
+.session-bundle-add-product {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #fff;
+    border: 1px solid #e1e1e1;
+    border-radius: 4px;
+}
+
+#session-bundle-product-selector {
+    flex: 1;
+    min-width: 300px;
+}
+
+#add-bundle-product {
+    padding: 8px 16px !important;
+    background: #0073aa !important;
+    border-color: #0073aa !important;
+    color: #fff !important;
+}
+
+#add-bundle-product:hover {
+    background: #005a87 !important;
+    border-color: #005a87 !important;
+}
+
+.session-bundle-total {
+    padding: 15px;
+    background: #e7f7ff;
+    border: 1px solid #0073aa;
+    border-radius: 4px;
+    text-align: right;
+    font-size: 1.1em;
+}
+
+.session-bundle-total strong {
+    color: #0073aa;
+    margin-right: 10px;
+}
+
+#bundle-total-price {
+    font-weight: 600;
+    color: #23282d;
+}
+
+/* Select2 Customization */
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #0073aa;
+}
+
+.select2-container--default .select2-selection--single {
+    border: 1px solid #ddd;
+    border-radius: 3px;
+}
+
+.select2-container--default .select2-selection--single:focus {
+    border-color: #0073aa;
+    outline: none;
+    box-shadow: 0 0 0 1px #0073aa;
+}
+
+.product-option {
+    padding: 8px 12px;
+}
+
+.product-option .product-name {
+    font-weight: 600;
+    color: #23282d;
+    margin-bottom: 3px;
+}
+
+.product-option .product-price {
+    color: #666;
+    font-size: 0.9em;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .session-bundle-product-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .product-info {
+        margin-right: 0;
+        margin-bottom: 10px;
+        width: 100%;
+    }
+    
+    .product-quantity {
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+    
+    .session-bundle-add-product {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    #session-bundle-product-selector {
+        min-width: auto;
+    }
+}
+
+/* Hide bundle container for non-session-bundle products */
+.product-type-simple #session-bundle-products-container,
+.product-type-variable #session-bundle-products-container,
+.product-type-grouped #session-bundle-products-container,
+.product-type-external #session-bundle-products-container {
+    display: none;
+} 

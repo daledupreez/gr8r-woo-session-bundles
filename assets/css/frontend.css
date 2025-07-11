@@ -1,0 +1,246 @@
+/**
+ * WooCommerce Session Bundle Frontend Styles
+ */
+
+/* Session Bundle Description */
+.session-bundle-description {
+    margin: 20px 0;
+    padding: 20px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+}
+
+.session-bundle-description h4 {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 1.1em;
+    font-weight: 600;
+}
+
+.session-bundle-description ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.session-bundle-description li {
+    padding: 8px 0;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.session-bundle-description li:last-child {
+    border-bottom: none;
+}
+
+/* Session Bundle Loop Info */
+.session-bundle-loop-info {
+    margin-top: 10px;
+}
+
+.bundle-product-count {
+    display: inline-block;
+    padding: 4px 8px;
+    background: #0073aa;
+    color: #fff;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 500;
+}
+
+/* Session Bundle Contents Summary */
+.session-bundle-contents-summary {
+    margin: 20px 0;
+    padding: 15px;
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 6px;
+}
+
+.session-bundle-contents-summary h4 {
+    margin: 0 0 10px 0;
+    color: #856404;
+    font-size: 1em;
+    font-weight: 600;
+}
+
+.bundle-contents-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.bundle-contents-list li {
+    padding: 5px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ffeaa7;
+}
+
+.bundle-contents-list li:last-child {
+    border-bottom: none;
+}
+
+.bundle-product-name {
+    font-weight: 500;
+    color: #333;
+}
+
+.bundle-product-quantity {
+    color: #666;
+    font-size: 0.9em;
+}
+
+/* Session Bundle Summary (Cart/Checkout) */
+.session-bundle-summary {
+    margin: 10px 0;
+    padding: 10px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 4px;
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+
+.session-bundle-summary strong {
+    color: #333;
+    display: block;
+    margin-bottom: 5px;
+}
+
+/* Product Loop Enhancements */
+.woocommerce-loop-product__title {
+    margin-bottom: 5px;
+}
+
+/* Single Product Page Enhancements */
+.single-product .session-bundle-description {
+    margin: 30px 0;
+}
+
+.single-product .session-bundle-contents-summary {
+    margin: 30px 0;
+}
+
+/* Price Display */
+.session-bundle-price {
+    font-weight: 600;
+    color: #333;
+}
+
+.session-bundle-price .price {
+    font-size: 1.2em;
+}
+
+/* Stock Status */
+.session-bundle-out-of-stock {
+    color: #dc3545;
+    font-weight: 500;
+}
+
+.session-bundle-low-stock {
+    color: #ffc107;
+    font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .session-bundle-description {
+        padding: 15px;
+        margin: 15px 0;
+    }
+    
+    .session-bundle-description li {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .session-bundle-contents-summary {
+        padding: 12px;
+        margin: 15px 0;
+    }
+    
+    .bundle-contents-list li {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 3px;
+    }
+    
+    .bundle-product-count {
+        font-size: 0.75em;
+        padding: 3px 6px;
+    }
+}
+
+@media (max-width: 480px) {
+    .session-bundle-description h4 {
+        font-size: 1em;
+    }
+    
+    .session-bundle-contents-summary h4 {
+        font-size: 0.9em;
+    }
+    
+    .bundle-product-name {
+        font-size: 0.9em;
+    }
+    
+    .bundle-product-quantity {
+        font-size: 0.8em;
+    }
+}
+
+/* Theme Compatibility */
+.woocommerce .session-bundle-description,
+.woocommerce .session-bundle-contents-summary {
+    box-sizing: border-box;
+}
+
+/* Dark Theme Support */
+@media (prefers-color-scheme: dark) {
+    .session-bundle-description {
+        background: #2d3748;
+        border-color: #4a5568;
+        color: #e2e8f0;
+    }
+    
+    .session-bundle-description h4 {
+        color: #f7fafc;
+    }
+    
+    .session-bundle-description li {
+        border-bottom-color: #4a5568;
+    }
+    
+    .session-bundle-contents-summary {
+        background: #744210;
+        border-color: #975a16;
+    }
+    
+    .session-bundle-contents-summary h4 {
+        color: #fef5e7;
+    }
+    
+    .bundle-contents-list li {
+        border-bottom-color: #975a16;
+    }
+    
+    .bundle-product-name {
+        color: #f7fafc;
+    }
+    
+    .session-bundle-summary {
+        background: #2d3748;
+        border-color: #4a5568;
+        color: #e2e8f0;
+    }
+    
+    .session-bundle-summary strong {
+        color: #f7fafc;
+    }
+} 
