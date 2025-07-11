@@ -6,7 +6,7 @@
  * Version: 1.0.0
  * Author: Your Name
  * Author URI: https://example.com
- * Text Domain: gr8r-woo-session-bundless
+ * Text Domain: gr8r-woo-session-bundles
  * Domain Path: /languages
  * Requires at least: 5.0
  * Tested up to: 6.4
@@ -49,7 +49,7 @@ class GR8R_Woo_Session_Bundle {
         }
         
         // Load text domain
-        load_plugin_textdomain('gr8r-woo-session-bundless', false, dirname(plugin_basename(__FILE__)) . '/languages');
+        load_plugin_textdomain('gr8r-woo-session-bundles', false, dirname(plugin_basename(__FILE__)) . '/languages');
         
         // Include required files
         $this->includes();
@@ -86,7 +86,7 @@ class GR8R_Woo_Session_Bundle {
      * Add Session Bundle to product type selector
      */
     public function add_session_bundle_product_type($types) {
-        $types['session_bundle'] = __('Session Bundle', 'gr8r-woo-session-bundless');
+        $types['session_bundle'] = __('Session Bundle', 'gr8r-woo-session-bundles');
         return $types;
     }
     
@@ -105,7 +105,7 @@ class GR8R_Woo_Session_Bundle {
      */
     public function woocommerce_missing_notice() {
         echo '<div class="error"><p>' . 
-             __('Gr8r Session Bundles for WooCommerce requires WooCommerce to be installed and active.', 'gr8r-woo-session-bundless') . 
+             __('Gr8r Session Bundles for WooCommerce requires WooCommerce to be installed and active.', 'gr8r-woo-session-bundles') . 
              '</p></div>';
     }
 }

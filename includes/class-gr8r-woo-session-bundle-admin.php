@@ -36,7 +36,7 @@ class GR8R_Woo_Session_Bundle_Admin {
     public function add_session_bundle_meta_box() {
         add_meta_box(
             'session-bundle-products',
-            __('Session Bundle Products', 'gr8r-woo-session-bundless'),
+            __('Session Bundle Products', 'gr8r-woo-session-bundles'),
             array($this, 'render_session_bundle_meta_box'),
             'product',
             'normal',
