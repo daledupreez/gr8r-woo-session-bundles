@@ -31,7 +31,7 @@ define( 'GR8R_WOO_SESSION_BUNDLE_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
  *
  * @since 1.0.0
  */
-class GR8R_Woo_Session_Bundle {
+class GR8R_Woo_Session_Bundles {
 
 	/**
 	 * Constructor
@@ -132,4 +132,4 @@ class GR8R_Woo_Session_Bundle {
 }
 
 // Initialize the plugin.
-new GR8R_Woo_Session_Bundle(); 
+new GR8R_Woo_Session_Bundles();
