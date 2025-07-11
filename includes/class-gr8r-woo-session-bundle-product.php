@@ -77,7 +77,7 @@ class GR8R_Woo_Session_Bundle_Product extends WC_Product {
         
         if (!empty($bundled_products)) {
             $description .= '<div class="session-bundle-contents">';
-            $description .= '<h4>' . __('Bundle Contents:', 'gr8r-woo-session-bundle') . '</h4>';
+            $description .= '<h4>' . __('Bundle Contents:', 'gr8r-woo-session-bundless') . '</h4>';
             $description .= '<ul>';
             
             foreach ($bundled_products as $product_id => $quantity) {

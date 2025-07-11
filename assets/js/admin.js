@@ -9,13 +9,13 @@ jQuery(document).ready(function($) {
     function initProductSelector() {
         $('#session-bundle-product-selector').select2({
             ajax: {
-                url: gr8r_session_bundle.ajax_url,
+                url: gr8r_woo_session_bundless.ajax_url,
                 dataType: 'json',
                 delay: 250,
                 data: function(params) {
                     return {
-                        action: 'gr8r_session_bundle_search_products',
-                        nonce: gr8r_session_bundle.nonce,
+                        action: 'gr8r_woo_session_bundless_search_products',
+                        nonce: gr8r_woo_session_bundless.nonce,
                         search: params.term,
                         page: params.page || 1
                     };
@@ -32,7 +32,7 @@ jQuery(document).ready(function($) {
                 },
                 cache: true
             },
-            placeholder: gr8r_session_bundle.strings.select_products,
+            placeholder: gr8r_woo_session_bundless.strings.select_products,
             minimumInputLength: 2,
             templateResult: formatProductOption,
             templateSelection: formatProductSelection

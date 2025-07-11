@@ -1,12 +1,12 @@
 <?php
 /**
  * Plugin Name: Gr8r Session Bundles for WooCommerce
- * Plugin URI: https://example.com/gr8r-woo-session-bundle
+ * Plugin URI: https://example.com/gr8r-woo-session-bundles
  * Description: Adds a new Session Bundle product type to WooCommerce that allows bundling multiple products with custom quantities.
  * Version: 1.0.0
  * Author: Your Name
  * Author URI: https://example.com
- * Text Domain: gr8r-woo-session-bundle
+ * Text Domain: gr8r-woo-session-bundless
  * Domain Path: /languages
  * Requires at least: 5.0
  * Tested up to: 6.4
@@ -49,7 +49,7 @@ class GR8R_Woo_Session_Bundle {
         }
         
         // Load text domain
-        load_plugin_textdomain('gr8r-woo-session-bundle', false, dirname(plugin_basename(__FILE__)) . '/languages');
+        load_plugin_textdomain('gr8r-woo-session-bundless', false, dirname(plugin_basename(__FILE__)) . '/languages');
         
         // Include required files
         $this->includes();
@@ -62,9 +62,9 @@ class GR8R_Woo_Session_Bundle {
      * Include required files
      */
     private function includes() {
-        require_once GR8R_WOO_SESSION_BUNDLE_PLUGIN_PATH . 'includes/class-gr8r-woo-session-bundle-product.php';
-        require_once GR8R_WOO_SESSION_BUNDLE_PLUGIN_PATH . 'includes/class-gr8r-woo-session-bundle-admin.php';
-        require_once GR8R_WOO_SESSION_BUNDLE_PLUGIN_PATH . 'includes/class-gr8r-woo-session-bundle-frontend.php';
+        require_once GR8R_WOO_SESSION_BUNDLE_PLUGIN_PATH . 'includes/class-gr8r-woo-session-bundles-product.php';
+        require_once GR8R_WOO_SESSION_BUNDLE_PLUGIN_PATH . 'includes/class-gr8r-woo-session-bundles-admin.php';
+        require_once GR8R_WOO_SESSION_BUNDLE_PLUGIN_PATH . 'includes/class-gr8r-woo-session-bundles-frontend.php';
     }
     
     /**
@@ -86,7 +86,7 @@ class GR8R_Woo_Session_Bundle {
      * Add Session Bundle to product type selector
      */
     public function add_session_bundle_product_type($types) {
-        $types['session_bundle'] = __('Session Bundle', 'gr8r-woo-session-bundle');
+        $types['session_bundle'] = __('Session Bundle', 'gr8r-woo-session-bundless');
         return $types;
     }
     
@@ -105,7 +105,7 @@ class GR8R_Woo_Session_Bundle {
      */
     public function woocommerce_missing_notice() {
         echo '<div class="error"><p>' . 
-             __('Gr8r Session Bundles for WooCommerce requires WooCommerce to be installed and active.', 'gr8r-woo-session-bundle') . 
+             __('Gr8r Session Bundles for WooCommerce requires WooCommerce to be installed and active.', 'gr8r-woo-session-bundless') . 
              '</p></div>';
     }
 }

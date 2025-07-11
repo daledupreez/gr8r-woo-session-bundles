@@ -62,7 +62,7 @@ class GR8R_Woo_Session_Bundle_Frontend {
             printf(
                 '<span class="bundle-product-count">%s</span>',
                 sprintf(
-                    _n('%d product', '%d products', $product_count, 'gr8r-woo-session-bundle'),
+                    _n('%d product', '%d products', $product_count, 'gr8r-woo-session-bundles'),
                     $product_count
                 )
             );
@@ -104,7 +104,7 @@ class GR8R_Woo_Session_Bundle_Frontend {
         
         if (!empty($bundled_products)) {
             echo '<div class="session-bundle-contents-summary">';
-            echo '<h4>' . __('This bundle includes:', 'gr8r-woo-session-bundle') . '</h4>';
+            echo '<h4>' . __('This bundle includes:', 'gr8r-woo-session-bundles') . '</h4>';
             echo '<ul class="bundle-contents-list">';
             
             foreach ($bundled_products as $product_id => $quantity) {
@@ -128,14 +128,14 @@ class GR8R_Woo_Session_Bundle_Frontend {
     public function enqueue_frontend_scripts() {
         if (is_product() || is_shop() || is_product_category()) {
                     wp_enqueue_style(
-            'gr8r-woo-session-bundle-frontend',
+            'gr8r-woo-session-bundles-frontend',
             GR8R_WOO_SESSION_BUNDLE_PLUGIN_URL . 'assets/css/frontend.css',
             array(),
             GR8R_WOO_SESSION_BUNDLE_VERSION
         );
         
         wp_enqueue_script(
-            'gr8r-woo-session-bundle-frontend',
+            'gr8r-woo-session-bundles-frontend',
             GR8R_WOO_SESSION_BUNDLE_PLUGIN_URL . 'assets/js/frontend.js',
             array('jquery'),
             GR8R_WOO_SESSION_BUNDLE_VERSION,
@@ -159,7 +159,7 @@ class GR8R_Woo_Session_Bundle_Frontend {
         
         if (!empty($bundled_products)) {
             $summary .= '<div class="session-bundle-summary">';
-            $summary .= '<strong>' . __('Bundle contents:', 'gr8r-woo-session-bundle') . '</strong><br>';
+            $summary .= '<strong>' . __('Bundle contents:', 'gr8r-woo-session-bundles') . '</strong><br>';
             
             foreach ($bundled_products as $bundle_product_id => $quantity) {
                 $bundle_product = wc_get_product($bundle_product_id);

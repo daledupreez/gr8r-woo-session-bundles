@@ -7,3 +7,6 @@ Can you refactor this file to be called "Gr8r Session Bundles for WooCommerce" a
 
 @woocommerce-session-bundle.php
 Can you rename @woocommerce-session-bundle.php  to `gr8r-woo-session-bundles.php`?
+
+
+Can you change the text domain in all files from `gr8r-woo-session-bundle` to `gr8r-woo-session-bundles`? And can you change all variables and references using the singular form of `gr8r_woo_session_bundle` to the plural `gr8r_woo_session_bundles`?

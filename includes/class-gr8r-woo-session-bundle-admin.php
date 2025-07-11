@@ -24,10 +24,10 @@ class GR8R_Woo_Session_Bundle_Admin {
         add_action('woocommerce_product_options_general_product_data', array($this, 'add_session_bundle_options'));
         
         // AJAX handlers
-        add_action('wp_ajax_gr8r_woo_session_bundle_search_products', array($this, 'ajax_search_products'));
-        add_action('wp_ajax_gr8r_woo_session_bundle_get_summary', array($this, 'ajax_get_bundle_summary'));
-        add_action('wp_ajax_gr8r_woo_session_bundle_check_stock', array($this, 'ajax_check_stock'));
-        add_action('wp_ajax_gr8r_woo_session_bundle_get_product_data', array($this, 'ajax_get_product_data'));
+        add_action('wp_ajax_gr8r_woo_session_bundles_search_products', array($this, 'ajax_search_products'));
+        add_action('wp_ajax_gr8r_woo_session_bundles_get_summary', array($this, 'ajax_get_bundle_summary'));
+        add_action('wp_ajax_gr8r_woo_session_bundles_check_stock', array($this, 'ajax_check_stock'));
+        add_action('wp_ajax_gr8r_woo_session_bundles_get_product_data', array($this, 'ajax_get_product_data'));
     }
     
     /**
@@ -36,7 +36,7 @@ class GR8R_Woo_Session_Bundle_Admin {
     public function add_session_bundle_meta_box() {
         add_meta_box(
             'session-bundle-products',
-            __('Session Bundle Products', 'gr8r-woo-session-bundle'),
+            __('Session Bundle Products', 'gr8r-woo-session-bundless'),
             array($this, 'render_session_bundle_meta_box'),
             'product',
             'normal',
@@ -71,7 +71,7 @@ class GR8R_Woo_Session_Bundle_Admin {
                                 </div>
                                 <div class="product-quantity">
                                     <label for="bundle_quantity_<?php echo esc_attr($product_id); ?>">
-                                        <?php _e('Quantity:', 'gr8r-woo-session-bundle'); ?>
+                                        <?php _e('Quantity:', 'gr8r-woo-session-bundles'); ?>
                                     </label>
                                     <input 
                                         type="number" 
@@ -83,7 +83,7 @@ class GR8R_Woo_Session_Bundle_Admin {
                                     />
                                 </div>
                                 <button type="button" class="remove-bundle-product button-secondary">
-                                    <?php _e('Remove', 'gr8r-woo-session-bundle'); ?>
+                                    <?php _e('Remove', 'gr8r-woo-session-bundles'); ?>
                                 </button>
                             </div>
                         <?php endif; ?>
@@ -92,16 +92,16 @@ class GR8R_Woo_Session_Bundle_Admin {
             </div>
             
             <div class="session-bundle-add-product">
-                <select id="session-bundle-product-selector" class="wc-product-search" data-placeholder="<?php esc_attr_e('Search for products...', 'gr8r-woo-session-bundle'); ?>">
-                    <option value=""><?php _e('Search for products...', 'gr8r-woo-session-bundle'); ?></option>
+                <select id="session-bundle-product-selector" class="wc-product-search" data-placeholder="<?php esc_attr_e('Search for products...', 'gr8r-woo-session-bundles'); ?>">
+                    <option value=""><?php _e('Search for products...', 'gr8r-woo-session-bundles'); ?></option>
                 </select>
                 <button type="button" id="add-bundle-product" class="button-secondary">
-                    <?php _e('Add Product', 'gr8r-woo-session-bundle'); ?>
+                    <?php _e('Add Product', 'gr8r-woo-session-bundles'); ?>
                 </button>
             </div>
             
             <div class="session-bundle-total">
-                <strong><?php _e('Bundle Total:', 'gr8r-woo-session-bundle'); ?></strong>
+                <strong><?php _e('Bundle Total:', 'gr8r-woo-session-bundles'); ?></strong>
                 <span id="bundle-total-price"><?php echo wc_price($product->get_bundle_price()); ?></span>
             </div>
         </div>
@@ -124,9 +124,9 @@ class GR8R_Woo_Session_Bundle_Admin {
         
         woocommerce_wp_text_input(array(
             'id' => '_bundle_price',
-            'label' => __('Bundle Price', 'gr8r-woo-session-bundle'),
+            'label' => __('Bundle Price', 'gr8r-woo-session-bundles'),
             'desc_tip' => true,
-            'description' => __('Set a custom price for the bundle (leave empty to calculate from bundled products).', 'gr8r-woo-session-bundle'),
+            'description' => __('Set a custom price for the bundle (leave empty to calculate from bundled products).', 'gr8r-woo-session-bundles'),
             'type' => 'number',
             'custom_attributes' => array(
                 'step' => 'any',
@@ -196,7 +196,7 @@ class GR8R_Woo_Session_Bundle_Admin {
         }
         
         wp_enqueue_script(
-            'gr8r-woo-session-bundle-admin',
+            'gr8r-woo-session-bundles-admin',
             GR8R_WOO_SESSION_BUNDLE_PLUGIN_URL . 'assets/js/admin.js',
             array('jquery', 'select2'),
             GR8R_WOO_SESSION_BUNDLE_VERSION,
@@ -204,21 +204,21 @@ class GR8R_Woo_Session_Bundle_Admin {
         );
         
         wp_enqueue_style(
-            'gr8r-woo-session-bundle-admin',
+            'gr8r-woo-session-bundles-admin',
             GR8R_WOO_SESSION_BUNDLE_PLUGIN_URL . 'assets/css/admin.css',
             array(),
             GR8R_WOO_SESSION_BUNDLE_VERSION
         );
         
-        wp_localize_script('gr8r-woo-session-bundle-admin', 'gr8r_woo_session_bundle', array(
+        wp_localize_script('gr8r-woo-session-bundles-admin', 'gr8r_woo_session_bundles', array(
             'ajax_url' => admin_url('admin-ajax.php'),
-            'nonce' => wp_create_nonce('gr8r_woo_session_bundle_nonce'),
+            'nonce' => wp_create_nonce('gr8r_woo_session_bundles_nonce'),
             'currency_symbol' => get_woocommerce_currency_symbol(),
             'strings' => array(
-                'select_products' => __('Select products...', 'gr8r-woo-session-bundle'),
-                'remove_product' => __('Remove', 'gr8r-woo-session-bundle'),
-                'quantity' => __('Quantity:', 'gr8r-woo-session-bundle'),
-                'bundle_total' => __('Bundle Total:', 'gr8r-woo-session-bundle')
+                'select_products' => __('Select products...', 'gr8r-woo-session-bundles'),
+                'remove_product' => __('Remove', 'gr8r-woo-session-bundles'),
+                'quantity' => __('Quantity:', 'gr8r-woo-session-bundles'),
+                'bundle_total' => __('Bundle Total:', 'gr8r-woo-session-bundles')
             )
         ));
     }
@@ -227,7 +227,7 @@ class GR8R_Woo_Session_Bundle_Admin {
      * AJAX: Search products for bundle
      */
     public function ajax_search_products() {
-        check_ajax_referer('gr8r_woo_session_bundle_nonce', 'nonce');
+        check_ajax_referer('gr8r_woo_session_bundles_nonce', 'nonce');
         
         $search = sanitize_text_field($_POST['search']);
         $page = intval($_POST['page']);
@@ -271,7 +271,7 @@ class GR8R_Woo_Session_Bundle_Admin {
      * AJAX: Get bundle summary
      */
     public function ajax_get_bundle_summary() {
-        check_ajax_referer('gr8r_woo_session_bundle_nonce', 'nonce');
+        check_ajax_referer('gr8r_woo_session_bundles_nonce', 'nonce');
         
         $product_id = intval($_POST['product_id']);
         $product = wc_get_product($product_id);
@@ -289,7 +289,7 @@ class GR8R_Woo_Session_Bundle_Admin {
      * AJAX: Check stock for bundle
      */
     public function ajax_check_stock() {
-        check_ajax_referer('gr8r_woo_session_bundle_nonce', 'nonce');
+        check_ajax_referer('gr8r_woo_session_bundles_nonce', 'nonce');
         
         $product_id = intval($_POST['product_id']);
         $quantity = intval($_POST['quantity']);
@@ -303,11 +303,11 @@ class GR8R_Woo_Session_Bundle_Admin {
         $message = '';
         
         if (!$in_stock) {
-            $message = __('This bundle is currently out of stock.', 'gr8r-woo-session-bundle');
+            $message = __('This bundle is currently out of stock.', 'gr8r-woo-session-bundles');
         } elseif ($product->get_stock_quantity() < $quantity) {
             $in_stock = false;
             $message = sprintf(
-                __('Only %d bundles available in stock.', 'gr8r-woo-session-bundle'),
+                __('Only %d bundles available in stock.', 'gr8r-woo-session-bundles'),
                 $product->get_stock_quantity()
             );
         }
@@ -322,7 +322,7 @@ class GR8R_Woo_Session_Bundle_Admin {
      * AJAX: Get product data
      */
     public function ajax_get_product_data() {
-        check_ajax_referer('gr8r_woo_session_bundle_nonce', 'nonce');
+        check_ajax_referer('gr8r_woo_session_bundles_nonce', 'nonce');
         
         $product_id = intval($_POST['product_id']);
         $product = wc_get_product($product_id);
