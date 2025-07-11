@@ -34,12 +34,67 @@ define( 'GR8R_WOO_SESSION_BUNDLE_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 class GR8R_Woo_Session_Bundles {
 
 	/**
-	 * Constructor
+	 * Plugin instance.
+	 *
+	 * @var GR8R_Woo_Session_Bundles
+	 * @since 1.0.0
+	 */
+	private static $instance = null;
+
+	/**
+	 * Admin instance.
+	 *
+	 * @var GR8R_Woo_Session_Bundle_Admin
+	 * @since 1.0.0
+	 */
+	private $admin;
+
+	/**
+	 * Frontend instance.
+	 *
+	 * @var GR8R_Woo_Session_Bundle_Frontend
+	 * @since 1.0.0
+	 */
+	private $frontend;
+
+	/**
+	 * Private constructor to prevent direct instantiation
 	 *
 	 * @since 1.0.0
 	 */
-	public function __construct() {
+	private function __construct() {
 		add_action( 'plugins_loaded', array( $this, 'init' ) );
+	}
+
+	/**
+	 * Get plugin instance
+	 *
+	 * @return GR8R_Woo_Session_Bundles
+	 * @since 1.0.0
+	 */
+	public static function instance() {
+		if ( null === self::$instance ) {
+			self::$instance = new self();
+		}
+		return self::$instance;
+	}
+
+	/**
+	 * Prevent cloning of the instance
+	 *
+	 * @since 1.0.0
+	 */
+	private function __clone() {
+		// Prevent cloning.
+	}
+
+	/**
+	 * Prevent unserializing of the instance
+	 *
+	 * @since 1.0.0
+	 */
+	private function __wakeup() {
+		// Prevent unserializing.
 	}
 
 	/**
@@ -87,9 +142,9 @@ class GR8R_Woo_Session_Bundles {
 
 		// Initialize admin and frontend.
 		if ( is_admin() ) {
-			new GR8R_Woo_Session_Bundle_Admin();
+			$this->admin = new GR8R_Woo_Session_Bundle_Admin();
 		}
-		new GR8R_Woo_Session_Bundle_Frontend();
+		$this->frontend = new GR8R_Woo_Session_Bundle_Frontend();
 	}
 
 	/**
@@ -129,7 +184,27 @@ class GR8R_Woo_Session_Bundles {
 			esc_html__( 'Gr8r Session Bundles for WooCommerce requires WooCommerce to be installed and active.', 'gr8r-woo-session-bundles' ) .
 			'</p></div>';
 	}
+
+	/**
+	 * Get admin instance
+	 *
+	 * @return GR8R_Woo_Session_Bundle_Admin|null
+	 * @since 1.0.0
+	 */
+	public function get_admin() {
+		return $this->admin;
+	}
+
+	/**
+	 * Get frontend instance
+	 *
+	 * @return GR8R_Woo_Session_Bundle_Frontend
+	 * @since 1.0.0
+	 */
+	public function get_frontend() {
+		return $this->frontend;
+	}
 }
 
 // Initialize the plugin.
-new GR8R_Woo_Session_Bundles();
+GR8R_Woo_Session_Bundles::instance();

@@ -16,3 +16,6 @@ Find all text occurrences of `bundless` and replace them with `bundles`.
 
 
 Please update all PHP files in the project to use tabs for indentation instead of spaces, and ensure that they comply with WordPress and WooCommerce linting and formatting rules.
+
+
+Update the `GR8R_Woo_Session_Bundles` class to use a private constructor and a singleton pattern via the `instance()` static method.
