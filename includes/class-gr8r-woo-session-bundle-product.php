@@ -2,7 +2,7 @@
 /**
  * Session Bundle Product Class
  *
- * @package WooCommerce Session Bundle
+ * @package Gr8r Session Bundles for WooCommerce
  */
 
 if (!defined('ABSPATH')) {
@@ -12,7 +12,7 @@ if (!defined('ABSPATH')) {
 /**
  * Session Bundle Product Class
  */
-class WC_Product_Session_Bundle extends WC_Product {
+class GR8R_Woo_Session_Bundle_Product extends WC_Product {
     
     /**
      * Initialize Session Bundle product
@@ -77,7 +77,7 @@ class WC_Product_Session_Bundle extends WC_Product {
         
         if (!empty($bundled_products)) {
             $description .= '<div class="session-bundle-contents">';
-            $description .= '<h4>' . __('Bundle Contents:', 'woocommerce-session-bundle') . '</h4>';
+            $description .= '<h4>' . __('Bundle Contents:', 'gr8r-woo-session-bundle') . '</h4>';
             $description .= '<ul>';
             
             foreach ($bundled_products as $product_id => $quantity) {

@@ -1,4 +1,4 @@
-# WooCommerce Session Bundle
+# Gr8r Session Bundles for WooCommerce
 
 A WordPress plugin that adds a new "Session Bundle" product type to WooCommerce, allowing you to create bundles of multiple products with custom quantities.
 

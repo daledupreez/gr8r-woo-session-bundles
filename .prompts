@@ -1,1 +1,9 @@
 I want to build a WooCommerce extension using PHP and possibly Javascript. The extension will need to implement a new Session Bundle product type, where we will need to be able to select one or more existing WooCommerce products from within the WooCommerce product editor, and specify each of those products as a part of the Session Bundle. The product editor will also need to be able to specify the quantity for each product that will be bundled. The plugin will need to include logic to render a description for each Session Bundle product that lists the included sessions by looking up the title for each of the products that it references.
+
+
+@woocommerce-session-bundle.php
+Can you refactor this file to be called "Gr8r Session Bundles for WooCommerce" and use `gr8r-woo-session-bundle` as the text domain and plugin slug? Please refactor all constants to use `GRR_WOO_SESSION_BUNDLE` as a prefix instead of `WC_SESSION_BUNDLE`, and update all class names and standalone functions to use the new prefix/naming.
+
+
+@woocommerce-session-bundle.php
+Can you rename @woocommerce-session-bundle.php  to `gr8r-woo-session-bundles.php`?

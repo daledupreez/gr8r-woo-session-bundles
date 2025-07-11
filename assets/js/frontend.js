@@ -31,8 +31,8 @@ jQuery(document).ready(function($) {
                     url: wc_session_bundle.ajax_url,
                     type: 'POST',
                     data: {
-                        action: 'wc_session_bundle_get_summary',
-                        nonce: wc_session_bundle.nonce,
+                        action: 'gr8r_woo_session_bundle_get_summary',
+                        nonce: gr8r_woo_session_bundle.nonce,
                         product_id: productId[1]
                     },
                     success: function(response) {
@@ -58,8 +58,8 @@ jQuery(document).ready(function($) {
                     url: wc_session_bundle.ajax_url,
                     type: 'POST',
                     data: {
-                        action: 'wc_session_bundle_check_stock',
-                        nonce: wc_session_bundle.nonce,
+                        action: 'gr8r_woo_session_bundle_check_stock',
+                        nonce: gr8r_woo_session_bundle.nonce,
                         product_id: $product.val(),
                         quantity: $input.val()
                     },
@@ -122,8 +122,8 @@ jQuery(document).ready(function($) {
                     url: wc_session_bundle.ajax_url,
                     type: 'POST',
                     data: {
-                        action: 'wc_session_bundle_get_product_data',
-                        nonce: wc_session_bundle.nonce,
+                        action: 'gr8r_woo_session_bundle_get_product_data',
+                        nonce: gr8r_woo_session_bundle.nonce,
                         product_id: productId
                     },
                     success: function(response) {
@@ -186,8 +186,8 @@ jQuery(document).ready(function($) {
                     url: wc_session_bundle.ajax_url,
                     type: 'POST',
                     data: {
-                        action: 'wc_session_bundle_quick_view',
-                        nonce: wc_session_bundle.nonce,
+                        action: 'gr8r_woo_session_bundle_quick_view',
+                        nonce: gr8r_woo_session_bundle.nonce,
                         product_id: productId
                     },
                     success: function(response) {
@@ -220,7 +220,7 @@ jQuery(document).ready(function($) {
     }
     
     // Initialize when document is ready
-    if (typeof wc_session_bundle !== 'undefined') {
+    if (typeof gr8r_woo_session_bundle !== 'undefined') {
         initSessionBundle();
         addBundleInfoToProductData();
         initBundleTooltips();

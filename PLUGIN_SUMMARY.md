@@ -1,4 +1,4 @@
-# WooCommerce Session Bundle Plugin - Summary
+# Gr8r Session Bundles for WooCommerce Plugin - Summary
 
 ## What Has Been Built
 

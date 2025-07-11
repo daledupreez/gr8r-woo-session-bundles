@@ -9,13 +9,13 @@ jQuery(document).ready(function($) {
     function initProductSelector() {
         $('#session-bundle-product-selector').select2({
             ajax: {
-                url: wc_session_bundle.ajax_url,
+                url: gr8r_session_bundle.ajax_url,
                 dataType: 'json',
                 delay: 250,
                 data: function(params) {
                     return {
-                        action: 'wc_session_bundle_search_products',
-                        nonce: wc_session_bundle.nonce,
+                        action: 'gr8r_session_bundle_search_products',
+                        nonce: gr8r_session_bundle.nonce,
                         search: params.term,
                         page: params.page || 1
                     };
@@ -32,7 +32,7 @@ jQuery(document).ready(function($) {
                 },
                 cache: true
             },
-            placeholder: wc_session_bundle.strings.select_products,
+            placeholder: gr8r_session_bundle.strings.select_products,
             minimumInputLength: 2,
             templateResult: formatProductOption,
             templateSelection: formatProductSelection
@@ -88,11 +88,11 @@ jQuery(document).ready(function($) {
                     '<span class="product-price">' + selectedProduct.price + '</span>' +
                 '</div>' +
                 '<div class="product-quantity">' +
-                    '<label for="bundle_quantity_' + selectedProduct.id + '">' + wc_session_bundle.strings.quantity + '</label>' +
+                    '<label for="bundle_quantity_' + selectedProduct.id + '">' + gr8r_woo_session_bundle.strings.quantity + '</label>' +
                     '<input type="number" id="bundle_quantity_' + selectedProduct.id + '" ' +
                            'name="bundle_quantities[' + selectedProduct.id + ']" value="1" min="1" class="bundle-quantity-input" />' +
                 '</div>' +
-                '<button type="button" class="remove-bundle-product button-secondary">' + wc_session_bundle.strings.remove_product + '</button>' +
+                '<button type="button" class="remove-bundle-product button-secondary">' + gr8r_woo_session_bundle.strings.remove_product + '</button>' +
             '</div>'
         );
         
@@ -139,7 +139,7 @@ jQuery(document).ready(function($) {
     
     // Format price
     function formatPrice(price) {
-        return wc_session_bundle.currency_symbol + price.toFixed(2);
+        return gr8r_woo_session_bundle.currency_symbol + price.toFixed(2);
     }
     
     // Initialize when document is ready
