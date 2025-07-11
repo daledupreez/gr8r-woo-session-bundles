@@ -13,3 +13,6 @@ Can you change the text domain in all files from `gr8r-woo-session-bundle` to `g
 
 
 Find all text occurrences of `bundless` and replace them with `bundles`.
+
+
+Please update all PHP files in the project to use tabs for indentation instead of spaces, and ensure that they comply with WordPress and WooCommerce linting and formatting rules.

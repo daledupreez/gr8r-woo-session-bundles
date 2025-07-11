@@ -16,99 +16,120 @@
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  */
 
-// Prevent direct access
-if (!defined('ABSPATH')) {
-    exit;
+// Prevent direct access.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
 }
 
-// Define plugin constants
-define('GR8R_WOO_SESSION_BUNDLE_VERSION', '1.0.0');
-define('GR8R_WOO_SESSION_BUNDLE_PLUGIN_URL', plugin_dir_url(__FILE__));
-define('GR8R_WOO_SESSION_BUNDLE_PLUGIN_PATH', plugin_dir_path(__FILE__));
+// Define plugin constants.
+define( 'GR8R_WOO_SESSION_BUNDLE_VERSION', '1.0.0' );
+define( 'GR8R_WOO_SESSION_BUNDLE_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
+define( 'GR8R_WOO_SESSION_BUNDLE_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 
 /**
  * Main Gr8r Session Bundles for WooCommerce Class
+ *
+ * @since 1.0.0
  */
 class GR8R_Woo_Session_Bundle {
-    
-    /**
-     * Constructor
-     */
-    public function __construct() {
-        add_action('plugins_loaded', array($this, 'init'));
-    }
-    
-    /**
-     * Initialize the plugin
-     */
-    public function init() {
-        // Check if WooCommerce is active
-        if (!class_exists('WooCommerce')) {
-            add_action('admin_notices', array($this, 'woocommerce_missing_notice'));
-            return;
-        }
-        
-        // Load text domain
-        load_plugin_textdomain('gr8r-woo-session-bundles', false, dirname(plugin_basename(__FILE__)) . '/languages');
-        
-        // Include required files
-        $this->includes();
-        
-        // Initialize hooks
-        $this->init_hooks();
-    }
-    
-    /**
-     * Include required files
-     */
-    private function includes() {
-        require_once GR8R_WOO_SESSION_BUNDLE_PLUGIN_PATH . 'includes/class-gr8r-woo-session-bundles-product.php';
-        require_once GR8R_WOO_SESSION_BUNDLE_PLUGIN_PATH . 'includes/class-gr8r-woo-session-bundles-admin.php';
-        require_once GR8R_WOO_SESSION_BUNDLE_PLUGIN_PATH . 'includes/class-gr8r-woo-session-bundles-frontend.php';
-    }
-    
-    /**
-     * Initialize hooks
-     */
-    private function init_hooks() {
-        // Add product type
-        add_filter('product_type_selector', array($this, 'add_session_bundle_product_type'));
-        add_filter('woocommerce_product_class', array($this, 'load_session_bundle_product_class'), 10, 2);
-        
-        // Initialize admin and frontend
-        if (is_admin()) {
-            new GR8R_Woo_Session_Bundle_Admin();
-        }
-        new GR8R_Woo_Session_Bundle_Frontend();
-    }
-    
-    /**
-     * Add Session Bundle to product type selector
-     */
-    public function add_session_bundle_product_type($types) {
-        $types['session_bundle'] = __('Session Bundle', 'gr8r-woo-session-bundles');
-        return $types;
-    }
-    
-    /**
-     * Load Session Bundle product class
-     */
-    public function load_session_bundle_product_class($classname, $product_type) {
-        if ($product_type === 'session_bundle') {
-            return 'GR8R_Woo_Session_Bundle_Product';
-        }
-        return $classname;
-    }
-    
-    /**
-     * WooCommerce missing notice
-     */
-    public function woocommerce_missing_notice() {
-        echo '<div class="error"><p>' . 
-             __('Gr8r Session Bundles for WooCommerce requires WooCommerce to be installed and active.', 'gr8r-woo-session-bundles') . 
-             '</p></div>';
-    }
+
+	/**
+	 * Constructor
+	 *
+	 * @since 1.0.0
+	 */
+	public function __construct() {
+		add_action( 'plugins_loaded', array( $this, 'init' ) );
+	}
+
+	/**
+	 * Initialize the plugin
+	 *
+	 * @since 1.0.0
+	 */
+	public function init() {
+		// Check if WooCommerce is active.
+		if ( ! class_exists( 'WooCommerce' ) ) {
+			add_action( 'admin_notices', array( $this, 'woocommerce_missing_notice' ) );
+			return;
+		}
+
+		// Load text domain.
+		load_plugin_textdomain( 'gr8r-woo-session-bundles', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+
+		// Include required files.
+		$this->includes();
+
+		// Initialize hooks.
+		$this->init_hooks();
+	}
+
+	/**
+	 * Include required files
+	 *
+	 * @since 1.0.0
+	 */
+	private function includes() {
+		require_once GR8R_WOO_SESSION_BUNDLE_PLUGIN_PATH . 'includes/class-gr8r-woo-session-bundles-product.php';
+		require_once GR8R_WOO_SESSION_BUNDLE_PLUGIN_PATH . 'includes/class-gr8r-woo-session-bundles-admin.php';
+		require_once GR8R_WOO_SESSION_BUNDLE_PLUGIN_PATH . 'includes/class-gr8r-woo-session-bundles-frontend.php';
+	}
+
+	/**
+	 * Initialize hooks
+	 *
+	 * @since 1.0.0
+	 */
+	private function init_hooks() {
+		// Add product type.
+		add_filter( 'product_type_selector', array( $this, 'add_session_bundle_product_type' ) );
+		add_filter( 'woocommerce_product_class', array( $this, 'load_session_bundle_product_class' ), 10, 2 );
+
+		// Initialize admin and frontend.
+		if ( is_admin() ) {
+			new GR8R_Woo_Session_Bundle_Admin();
+		}
+		new GR8R_Woo_Session_Bundle_Frontend();
+	}
+
+	/**
+	 * Add Session Bundle to product type selector
+	 *
+	 * @param array $types Product types.
+	 * @return array
+	 * @since 1.0.0
+	 */
+	public function add_session_bundle_product_type( $types ) {
+		$types['session_bundle'] = __( 'Session Bundle', 'gr8r-woo-session-bundles' );
+		return $types;
+	}
+
+	/**
+	 * Load Session Bundle product class
+	 *
+	 * @param string $classname Product class name.
+	 * @param string $product_type Product type.
+	 * @return string
+	 * @since 1.0.0
+	 */
+	public function load_session_bundle_product_class( $classname, $product_type ) {
+		if ( 'session_bundle' === $product_type ) {
+			return 'GR8R_Woo_Session_Bundle_Product';
+		}
+		return $classname;
+	}
+
+	/**
+	 * WooCommerce missing notice
+	 *
+	 * @since 1.0.0
+	 */
+	public function woocommerce_missing_notice() {
+		echo '<div class="error"><p>' .
+			esc_html__( 'Gr8r Session Bundles for WooCommerce requires WooCommerce to be installed and active.', 'gr8r-woo-session-bundles' ) .
+			'</p></div>';
+	}
 }
 
-// Initialize the plugin
+// Initialize the plugin.
 new GR8R_Woo_Session_Bundle(); 
