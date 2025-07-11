@@ -63,7 +63,7 @@ class GR8R_Woo_Session_Bundles {
 	 * @since 1.0.0
 	 */
 	private function __construct() {
-		add_action( 'plugins_loaded', array( $this, 'init' ) );
+		add_action( 'init', array( $this, 'init' ) );
 	}
 
 	/**
@@ -103,31 +103,24 @@ class GR8R_Woo_Session_Bundles {
 	 * @since 1.0.0
 	 */
 	public function init() {
+        // Load text domain.
+		load_plugin_textdomain( 'gr8r-woo-session-bundles', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+
 		// Check if WooCommerce is active.
 		if ( ! class_exists( 'WooCommerce' ) ) {
-			add_action( 'admin_notices', array( $this, 'woocommerce_missing_notice' ) );
+			if ( is_admin() ) {
+                add_action( 'admin_notices', array( $this, 'woocommerce_missing_notice' ) );
+            }
 			return;
 		}
 
-		// Load text domain.
-		load_plugin_textdomain( 'gr8r-woo-session-bundles', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
-
 		// Include required files.
-		$this->includes();
-
-		// Initialize hooks.
-		$this->init_hooks();
-	}
-
-	/**
-	 * Include required files
-	 *
-	 * @since 1.0.0
-	 */
-	private function includes() {
 		require_once GR8R_WOO_SESSION_BUNDLE_PLUGIN_PATH . 'includes/class-gr8r-woo-session-bundles-product.php';
 		require_once GR8R_WOO_SESSION_BUNDLE_PLUGIN_PATH . 'includes/class-gr8r-woo-session-bundles-admin.php';
 		require_once GR8R_WOO_SESSION_BUNDLE_PLUGIN_PATH . 'includes/class-gr8r-woo-session-bundles-frontend.php';
+
+		// Initialize hooks.
+		$this->init_hooks();
 	}
 
 	/**
