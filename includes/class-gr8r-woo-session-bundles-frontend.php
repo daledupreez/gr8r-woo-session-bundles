@@ -25,7 +25,7 @@ class GR8R_Woo_Session_Bundles_Frontend {
 	public function __construct() {
 		add_action( 'woocommerce_single_product_summary', array( $this, 'display_bundle_description' ), 25 );
 		add_action( 'woocommerce_after_shop_loop_item_title', array( $this, 'display_bundle_description_loop' ), 15 );
-		//add_filter( 'woocommerce_get_price_html', array( $this, 'modify_price_display' ), 10, 2 );
+
 		add_action( 'woocommerce_before_add_to_cart_button', array( $this, 'display_bundle_contents' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_scripts' ) );
 	}
@@ -84,31 +84,6 @@ class GR8R_Woo_Session_Bundles_Frontend {
 	}
 
 	/**
-	 * Modify price display for Session Bundle products
-	 *
-	 * @param string $price Price HTML.
-	 * @param WC_Product $product Product object.
-	 * @return string
-	 * @since 1.0.0
-	 */
-	public function modify_price_display( $price, $product ) {
-		if ( $product && 'session_bundle' === $product->get_type() ) {
-			$custom_price = get_post_meta( $product->get_id(), '_bundle_price', true );
-
-			if ( ! empty( $custom_price ) ) {
-				return wc_price( $custom_price );
-			} else {
-				$bundle_price = $product->get_bundle_price();
-				if ( $bundle_price > 0 ) {
-					return wc_price( $bundle_price );
-				}
-			}
-		}
-
-		return $price;
-	}
-
-	/**
 	 * Display bundle contents before add to cart button
 	 *
 	 * @since 1.0.0
@@ -116,11 +91,11 @@ class GR8R_Woo_Session_Bundles_Frontend {
 	public function display_bundle_contents() {
 		global $product;
 
-		if ( ! $product || 'session_bundle' !== $product->get_type() ) {
+		if ( ! $product || ! gr8r_session_bundles_is_session_bundle_product( $product->get_id() ) ) {
 			return;
 		}
 
-		$bundled_products = $product->get_bundled_products();
+		$bundled_products = gr8r_session_bundles_get_session_bundle_meta( $product->get_id() );
 
 		if ( ! empty( $bundled_products ) ) {
 			echo '<div class="session-bundle-contents-summary">';
@@ -176,11 +151,11 @@ class GR8R_Woo_Session_Bundles_Frontend {
 	public static function get_bundle_summary( $product_id ) {
 		$product = wc_get_product( $product_id );
 
-		if ( ! $product || 'session_bundle' !== $product->get_type() ) {
+		if ( ! $product || ! gr8r_session_bundles_is_session_bundle_product( $product->get_id() ) ) {
 			return '';
 		}
 
-		$bundled_products = $product->get_bundled_products();
+		$bundled_products = gr8r_session_bundles_get_session_bundle_meta( $product->get_id() );
 		$summary          = '';
 
 		if ( ! empty( $bundled_products ) ) {
