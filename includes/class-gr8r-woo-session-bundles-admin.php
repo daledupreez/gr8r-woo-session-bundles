@@ -53,7 +53,7 @@ class GR8R_Woo_Session_Bundles_Admin {
 			return;
 		}
 
-		$bundled_sessions = gr8r_session_bundles_get_session_bundle_meta( $product->get_id() );
+		$bundled_sessions = gr8r_session_bundles_get_product_bundle_meta( $product->get_id() );
 		$bundled_sessions_count = count( $bundled_sessions );
 		$add_button_class = $bundled_sessions_count > 0 ? 'button-secondary' : 'button-primary';
 		$bundled_sessions_json =  $bundled_sessions_count > 0 ? json_encode( $bundled_sessions, true ) : '{}';
@@ -141,7 +141,7 @@ class GR8R_Woo_Session_Bundles_Admin {
 		if ( $screen && $screen->id === 'product' && $screen->base === 'post' ) {
 			$current_post = get_post();
 			if ( $current_post ) {
-				if ( gr8r_session_bundles_is_session_bundle_product( $current_post->ID ) ) {
+				if ( gr8r_session_bundles_is_bundle_product( $current_post->ID ) ) {
 					$bundled_product_details = $this->get_product_details_for_bundled_sessions( $current_post->ID );
 				}
 			}
@@ -169,7 +169,7 @@ class GR8R_Woo_Session_Bundles_Admin {
 	protected function get_product_details_for_bundled_sessions( $product_id ): array {
 		$product_details = array();
 
-		$bundled_sessions = gr8r_session_bundles_get_session_bundle_meta( $product_id );
+		$bundled_sessions = gr8r_session_bundles_get_product_bundle_meta( $product_id );
 		
 		foreach ( array_keys( $bundled_sessions ) as $bundled_product_id ) {
 			$bundled_product = wc_get_product( $bundled_product_id );
@@ -250,11 +250,11 @@ class GR8R_Woo_Session_Bundles_Admin {
 				$gr8r_bundled_sessions = array();
 			} else {
 				// Basic value checks
-				$gr8r_bundled_sessions = gr8r_session_bundles_sanitize_session_bundle_data( $gr8r_bundled_sessions );
+				$gr8r_bundled_sessions = gr8r_session_bundles_sanitize_bundle_data( $gr8r_bundled_sessions );
 				$gr8r_bundled_sessions = array_filter(
 					$gr8r_bundled_sessions,
 					function( $product_id ) {
-						if ( gr8r_session_bundles_is_session_bundle_product( $product_id ) ) {
+						if ( gr8r_session_bundles_is_bundle_product( $product_id ) ) {
 							return false;
 						}
 
@@ -267,8 +267,8 @@ class GR8R_Woo_Session_Bundles_Admin {
 			}
 		}
 
-		gr8r_session_bundles_save_session_bundle_meta( $product->get_id(), $gr8r_bundled_sessions );
-		gr8r_session_bundles_save_is_session_bundle_meta( $product->get_id(), true );
+		gr8r_session_bundles_save_product_bundle_meta( $product->get_id(), $gr8r_bundled_sessions );
+		gr8r_session_bundles_save_product_is_bundle_meta( $product->get_id(), true );
 
 		$this->mark_action_done( 'save_bundled_session_meta', $product->get_id() );
 	}

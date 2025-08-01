@@ -14,14 +14,14 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @param int $product_id The product ID.
  * @param int[]|null $session_bundle_data The session bundle data. Specifying null or an empty array will delete the meta.
  */
-function gr8r_session_bundles_save_session_bundle_meta( $product_id, ?array $session_bundle_data ): void {
+function gr8r_session_bundles_save_product_bundle_meta( $product_id, ?array $session_bundle_data ): void {
 	if ( ! $product_id ) {
 		return;
 	}
 
 	$sanitized_data = null;
 	if ( is_array( $session_bundle_data ) ) {
-		$sanitized_data = gr8r_session_bundles_sanitize_session_bundle_data( $session_bundle_data );
+		$sanitized_data = gr8r_session_bundles_sanitize_bundle_data( $session_bundle_data );
 	}
 
 	if ( null === $sanitized_data || array() === $sanitized_data ) {
@@ -38,14 +38,14 @@ function gr8r_session_bundles_save_session_bundle_meta( $product_id, ?array $ses
  * @param int $product_id The product ID.
  * @return int[] The session bundle data.
  */
-function gr8r_session_bundles_get_session_bundle_meta( $product_id ): array {
+function gr8r_session_bundles_get_product_bundle_meta( $product_id ): array {
 	$stored_meta = get_post_meta( $product_id, '_gr8r_bundled_sessions', true );
 
 	if ( ! is_array( $stored_meta ) ) {
 		return array();
 	}
 
-	return gr8r_session_bundles_sanitize_session_bundle_data( $stored_meta );
+	return gr8r_session_bundles_sanitize_bundle_data( $stored_meta );
 }
 
 /**
@@ -54,7 +54,7 @@ function gr8r_session_bundles_get_session_bundle_meta( $product_id ): array {
  * @param array $session_bundle_data The session bundle data to sanitize.
  * @return int[] The sanitized session bundle data.
  */
-function gr8r_session_bundles_sanitize_session_bundle_data( array $session_bundle_data ): array {
+function gr8r_session_bundles_sanitize_bundle_data( array $session_bundle_data ): array {
 	return array_filter(
 		$session_bundle_data,
 		function( $quantity, $product_id ) {
@@ -70,7 +70,7 @@ function gr8r_session_bundles_sanitize_session_bundle_data( array $session_bundl
  * @param int $product_id The product ID.
  * @return bool True if the product is a session bundle product, false otherwise.
  */
-function gr8r_session_bundles_is_session_bundle_product( $product_id ): bool {
+function gr8r_session_bundles_is_bundle_product( $product_id ): bool {
 	$is_session_bundle_meta = get_post_meta( $product_id, '_gr8r_is_session_bundle', true );
 
 	return 'yes' === $is_session_bundle_meta;
@@ -82,7 +82,7 @@ function gr8r_session_bundles_is_session_bundle_product( $product_id ): bool {
  * @param int $product_id The product ID.
  * @param bool $is_session_bundle True if the product is a session bundle product, false otherwise.
  */
-function gr8r_session_bundles_save_is_session_bundle_meta( $product_id, bool $is_session_bundle ): void {
+function gr8r_session_bundles_save_product_is_bundle_meta( $product_id, bool $is_session_bundle ): void {
 	if ( $is_session_bundle ) {
 		update_post_meta( $product_id, '_gr8r_is_session_bundle', 'yes' );
 	} else {
@@ -97,7 +97,7 @@ function gr8r_session_bundles_save_is_session_bundle_meta( $product_id, bool $is
  * @since 1.0.0
  */
 function gr8r_session_bundles_get_bundle_description( $product_id ): string {
-	$bundled_products = gr8r_session_bundles_get_session_bundle_meta( $product_id );
+	$bundled_products = gr8r_session_bundles_get_product_bundle_meta( $product_id );
 	if ( empty( $bundled_products ) ) {
 		return '';
 	}

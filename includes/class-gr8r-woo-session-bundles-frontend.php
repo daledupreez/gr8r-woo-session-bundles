@@ -38,7 +38,7 @@ class GR8R_Woo_Session_Bundles_Frontend {
 	public function display_bundle_description() {
 		global $product;
 
-		if ( ! $product || ! gr8r_session_bundles_is_session_bundle_product( $product->get_id() ) ) {
+		if ( ! $product || ! gr8r_session_bundles_is_bundle_product( $product->get_id() ) ) {
 			return;
 		}
 
@@ -59,11 +59,11 @@ class GR8R_Woo_Session_Bundles_Frontend {
 	public function display_bundle_description_loop() {
 		global $product;
 
-		if ( ! $product || ! gr8r_session_bundles_is_session_bundle_product( $product->get_id() ) ) {
+		if ( ! $product || ! gr8r_session_bundles_is_bundle_product( $product->get_id() ) ) {
 			return;
 		}
 
-		$bundled_products = gr8r_session_bundles_get_session_bundle_meta( $product->get_id() );
+		$bundled_products = gr8r_session_bundles_get_product_bundle_meta( $product->get_id() );
 
 		if ( empty( $bundled_products ) ) {
 			return;
@@ -91,11 +91,11 @@ class GR8R_Woo_Session_Bundles_Frontend {
 	public function display_bundle_contents() {
 		global $product;
 
-		if ( ! $product || ! gr8r_session_bundles_is_session_bundle_product( $product->get_id() ) ) {
+		if ( ! $product || ! gr8r_session_bundles_is_bundle_product( $product->get_id() ) ) {
 			return;
 		}
 
-		$bundled_products = gr8r_session_bundles_get_session_bundle_meta( $product->get_id() );
+		$bundled_products = gr8r_session_bundles_get_product_bundle_meta( $product->get_id() );
 
 		if ( ! empty( $bundled_products ) ) {
 			echo '<div class="session-bundle-contents-summary">';
@@ -151,11 +151,11 @@ class GR8R_Woo_Session_Bundles_Frontend {
 	public static function get_bundle_summary( $product_id ) {
 		$product = wc_get_product( $product_id );
 
-		if ( ! $product || ! gr8r_session_bundles_is_session_bundle_product( $product->get_id() ) ) {
+		if ( ! $product || ! gr8r_session_bundles_is_bundle_product( $product->get_id() ) ) {
 			return '';
 		}
 
-		$bundled_products = gr8r_session_bundles_get_session_bundle_meta( $product->get_id() );
+		$bundled_products = gr8r_session_bundles_get_product_bundle_meta( $product->get_id() );
 		$summary          = '';
 
 		if ( ! empty( $bundled_products ) ) {
