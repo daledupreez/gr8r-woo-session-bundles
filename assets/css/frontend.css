@@ -3,7 +3,7 @@
  */
 
 /* Session Bundle Description */
-.session-bundle-description {
+.gr8r-session-bundle-description {
     margin: 20px 0;
     padding: 20px;
     background: #f8f9fa;
@@ -11,28 +11,25 @@
     border-radius: 8px;
 }
 
-.session-bundle-description h4 {
+.gr8r-session-bundle-description h4 {
     margin: 0 0 15px 0;
     color: #333;
     font-size: 1.1em;
     font-weight: 600;
 }
 
-.session-bundle-description ul {
+.gr8r-session-bundle-description ul {
     margin: 0;
     padding: 0;
     list-style: none;
 }
 
-.session-bundle-description li {
+.gr8r-session-bundle-description li {
     padding: 8px 0;
     border-bottom: 1px solid #e9ecef;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
 }
 
-.session-bundle-description li:last-child {
+.gr8r-session-bundle-description li:last-child {
     border-bottom: none;
 }
 
@@ -118,7 +115,7 @@
 }
 
 /* Single Product Page Enhancements */
-.single-product .session-bundle-description {
+.single-product .gr8r-session-bundle-description {
     margin: 30px 0;
 }
 
@@ -149,15 +146,9 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .session-bundle-description {
+    .gr8r-session-bundle-description {
         padding: 15px;
         margin: 15px 0;
-    }
-    
-    .session-bundle-description li {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 5px;
     }
     
     .session-bundle-contents-summary {
@@ -178,7 +169,7 @@
 }
 
 @media (max-width: 480px) {
-    .session-bundle-description h4 {
+    .gr8r-session-bundle-description h4 {
         font-size: 1em;
     }
     
@@ -196,24 +187,24 @@
 }
 
 /* Theme Compatibility */
-.woocommerce .session-bundle-description,
+.woocommerce .gr8r-session-bundle-description,
 .woocommerce .session-bundle-contents-summary {
     box-sizing: border-box;
 }
 
 /* Dark Theme Support */
 @media (prefers-color-scheme: dark) {
-    .session-bundle-description {
+    .gr8r-session-bundle-description {
         background: #2d3748;
         border-color: #4a5568;
         color: #e2e8f0;
     }
-    
-    .session-bundle-description h4 {
+
+    .gr8r-session-bundle-description h4 {
         color: #f7fafc;
     }
     
-    .session-bundle-description li {
+    .gr8r-session-bundle-description li {
         border-bottom-color: #4a5568;
     }
     

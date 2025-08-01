@@ -44,7 +44,7 @@ class GR8R_Woo_Session_Bundles {
 	/**
 	 * Admin instance.
 	 *
-	 * @var GR8R_Woo_Session_Bundle_Admin
+	 * @var GR8R_Woo_Session_Bundles_Admin
 	 * @since 1.0.0
 	 */
 	private $admin;
@@ -52,7 +52,7 @@ class GR8R_Woo_Session_Bundles {
 	/**
 	 * Frontend instance.
 	 *
-	 * @var GR8R_Woo_Session_Bundle_Frontend
+	 * @var GR8R_Woo_Session_Bundles_Frontend
 	 * @since 1.0.0
 	 */
 	private $frontend;
@@ -84,7 +84,7 @@ class GR8R_Woo_Session_Bundles {
 	 *
 	 * @since 1.0.0
 	 */
-	private function __clone() {
+	public function __clone() {
 		// Prevent cloning.
 	}
 
@@ -93,7 +93,7 @@ class GR8R_Woo_Session_Bundles {
 	 *
 	 * @since 1.0.0
 	 */
-	private function __wakeup() {
+	public function __wakeup() {
 		// Prevent unserializing.
 	}
 
@@ -114,8 +114,10 @@ class GR8R_Woo_Session_Bundles {
 			return;
 		}
 
+		// TODO: Check for other dependencies and hooks, e.g. Dokan, WooCommerce Bookings
+
 		// Include required files.
-		require_once GR8R_WOO_SESSION_BUNDLE_PLUGIN_PATH . 'includes/class-gr8r-woo-session-bundles-product.php';
+		require_once GR8R_WOO_SESSION_BUNDLE_PLUGIN_PATH . 'includes/gr8r-woo-session-bundles-product-utils.php';
 		require_once GR8R_WOO_SESSION_BUNDLE_PLUGIN_PATH . 'includes/class-gr8r-woo-session-bundles-admin.php';
 		require_once GR8R_WOO_SESSION_BUNDLE_PLUGIN_PATH . 'includes/class-gr8r-woo-session-bundles-frontend.php';
 
@@ -135,9 +137,9 @@ class GR8R_Woo_Session_Bundles {
 
 		// Initialize admin and frontend.
 		if ( is_admin() ) {
-			$this->admin = new GR8R_Woo_Session_Bundle_Admin();
+			$this->admin = new GR8R_Woo_Session_Bundles_Admin();
 		}
-		$this->frontend = new GR8R_Woo_Session_Bundle_Frontend();
+		$this->frontend = new GR8R_Woo_Session_Bundles_Frontend();
 	}
 
 	/**
@@ -162,7 +164,7 @@ class GR8R_Woo_Session_Bundles {
 	 */
 	public function load_session_bundle_product_class( $classname, $product_type ) {
 		if ( 'session_bundle' === $product_type ) {
-			return 'GR8R_Woo_Session_Bundle_Product';
+			return 'GR8R_Woo_Session_Bundles_Product';
 		}
 		return $classname;
 	}
@@ -181,7 +183,7 @@ class GR8R_Woo_Session_Bundles {
 	/**
 	 * Get admin instance
 	 *
-	 * @return GR8R_Woo_Session_Bundle_Admin|null
+	 * @return GR8R_Woo_Session_Bundles_Admin|null
 	 * @since 1.0.0
 	 */
 	public function get_admin() {
@@ -191,13 +193,78 @@ class GR8R_Woo_Session_Bundles {
 	/**
 	 * Get frontend instance
 	 *
-	 * @return GR8R_Woo_Session_Bundle_Frontend
+	 * @return GR8R_Woo_Session_Bundles_Frontend
 	 * @since 1.0.0
 	 */
 	public function get_frontend() {
 		return $this->frontend;
 	}
+
+	/**
+	 * Plugin activation function
+	 *
+	 * @since 1.0.0
+	 */
+	public static function activate() {
+		// Check requirements.
+		if ( version_compare( PHP_VERSION, '7.4.0', '<' ) ) {
+			deactivate_plugins( plugin_basename( __FILE__ ) );
+			wp_die( 'Gr8r Session Bundles for WooCommerce requires PHP 7.4 or higher.' );
+		}
+
+		if ( ! class_exists( 'WooCommerce' ) ) {
+			deactivate_plugins( plugin_basename( __FILE__ ) );
+			wp_die( 'Gr8r Session Bundles for WooCommerce requires WooCommerce to be installed and activated.' );
+		}
+
+		// Create version options.
+		update_option( 'wc_session_bundle_version', GR8R_WOO_SESSION_BUNDLE_VERSION );
+
+		// Flush rewrite rules.
+		flush_rewrite_rules();
+	}
+
+	/**
+	 * Plugin deactivation function
+	 *
+	 * @since 1.0.0
+	 */
+	public static function deactivate() {
+		// Clean up if necessary.
+		flush_rewrite_rules();
+	}
+
+	/**
+	 * Plugin uninstall function
+	 *
+	 * @since 1.0.0
+	 */
+	public static function uninstall() {
+		// Remove plugin data.
+		delete_option( 'wc_session_bundle_version' );
+
+		// Remove any custom post meta.
+		global $wpdb;
+		$wpdb->query( "DELETE FROM {$wpdb->postmeta} WHERE meta_key LIKE '_bundled_products'" );
+		$wpdb->query( "DELETE FROM {$wpdb->postmeta} WHERE meta_key LIKE '_bundle_price'" );
+	}
 }
 
 // Initialize the plugin.
 GR8R_Woo_Session_Bundles::instance();
+
+// Activation hook.
+register_activation_hook( __FILE__, array( GR8R_Woo_Session_Bundles::class, 'activate' ) );
+
+// Deactivation hook.
+register_deactivation_hook( __FILE__, array( GR8R_Woo_Session_Bundles::class, 'deactivate' ) );
+
+// Uninstall hook.
+register_uninstall_hook( __FILE__, array( GR8R_Woo_Session_Bundles::class, 'uninstall' ) );
+
+// Declare compatibility with WooCommerce HPOS.
+add_action( 'before_woocommerce_init', function() {
+	if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {
+		\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
+	}
+} );

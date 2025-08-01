@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * @since 1.0.0
  */
-class GR8R_Woo_Session_Bundle_Frontend {
+class GR8R_Woo_Session_Bundles_Frontend {
 
 	/**
 	 * Constructor
@@ -25,7 +25,7 @@ class GR8R_Woo_Session_Bundle_Frontend {
 	public function __construct() {
 		add_action( 'woocommerce_single_product_summary', array( $this, 'display_bundle_description' ), 25 );
 		add_action( 'woocommerce_after_shop_loop_item_title', array( $this, 'display_bundle_description_loop' ), 15 );
-		add_filter( 'woocommerce_get_price_html', array( $this, 'modify_price_display' ), 10, 2 );
+		//add_filter( 'woocommerce_get_price_html', array( $this, 'modify_price_display' ), 10, 2 );
 		add_action( 'woocommerce_before_add_to_cart_button', array( $this, 'display_bundle_contents' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_scripts' ) );
 	}
@@ -38,14 +38,14 @@ class GR8R_Woo_Session_Bundle_Frontend {
 	public function display_bundle_description() {
 		global $product;
 
-		if ( ! $product || 'session_bundle' !== $product->get_type() ) {
+		if ( ! $product || ! gr8r_session_bundles_is_session_bundle_product( $product->get_id() ) ) {
 			return;
 		}
 
-		$bundle_description = $product->get_bundle_description();
+		$bundle_description = gr8r_session_bundles_get_bundle_description( $product->get_id() );
 
 		if ( ! empty( $bundle_description ) ) {
-			echo '<div class="session-bundle-description">';
+			echo '<div class="gr8r-session-bundle-description">';
 			echo $bundle_description; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			echo '</div>';
 		}
@@ -59,25 +59,28 @@ class GR8R_Woo_Session_Bundle_Frontend {
 	public function display_bundle_description_loop() {
 		global $product;
 
-		if ( ! $product || 'session_bundle' !== $product->get_type() ) {
+		if ( ! $product || ! gr8r_session_bundles_is_session_bundle_product( $product->get_id() ) ) {
 			return;
 		}
 
-		$bundled_products = $product->get_bundled_products();
+		$bundled_products = gr8r_session_bundles_get_session_bundle_meta( $product->get_id() );
 
-		if ( ! empty( $bundled_products ) ) {
-			$product_count = count( $bundled_products );
-			echo '<div class="session-bundle-loop-info">';
-			printf(
-				'<span class="bundle-product-count">%s</span>',
-				sprintf(
-					/* translators: %d: number of products */
-					_n( '%d product', '%d products', $product_count, 'gr8r-woo-session-bundles' ),
-					$product_count
-				)
-			);
-			echo '</div>';
+		if ( empty( $bundled_products ) ) {
+			return;
 		}
+
+		// TODO: Check that this is displaying what we think it should.
+		$product_count = count( $bundled_products );
+		echo '<div class="session-bundle-loop-info">';
+		printf(
+			'<span class="bundle-product-count">%s</span>',
+			sprintf(
+				/* translators: %d: number of products */
+				_n( '%d product', '%d products', $product_count, 'gr8r-woo-session-bundles' ),
+				$product_count
+			)
+		);
+		echo '</div>';
 	}
 
 	/**

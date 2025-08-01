@@ -4,39 +4,85 @@
 
 jQuery(document).ready(function($) {
     'use strict';
-    
+
+    var productDetails = {};
+
+    var bundledSessions = {};
+
+    function getBundledProductIds() {
+        return Object.keys( bundledSessions );
+    }
+
+    function getBundledSessions() {
+        return bundledSessions;
+    }
+
+    function updateBundledSessions( delta ) {
+        Object.entries( delta ).forEach( ( [ productId, quantity ] ) => {
+            const quantityInt = parseInt( quantity, 10 );
+            if ( quantityInt > 0 ) {
+                bundledSessions[ productId ] = quantityInt;
+            } else {
+                delete bundledSessions[ productId ];
+            }
+        } );
+
+        const jsonInput = $( '#gr8r-bundled-sessions' );
+        jsonInput.val( JSON.stringify( bundledSessions ) );
+    }
+
+    function hydrateProductDetails() {
+        const bundledProductDetails = gr8r_woo_session_bundles_admin.bundled_product_details ?? {};
+
+        Object.values( bundledProductDetails ).forEach( ( productData ) => {
+            productDetails[ productData.id ] = productData;
+        } );
+    }
+
+    function hydrateBundledSessions() {
+        const jsonInput = $( '#gr8r-bundled-sessions' );
+        const jsonValue = jsonInput.length > 0 ? jsonInput.val() : '{}';
+        bundledSessions = JSON.parse( jsonValue );
+    }
+
     // Initialize product selector
     function initProductSelector() {
-        $('#session-bundle-product-selector').select2({
+        $('#gr8r-woo-session-bundles-add-bundled-product-selector').select2({
+            minimumInputLength: 3,
+            escapeMarkup: function( m ) {
+                return m;
+            },
             ajax: {
-                url: gr8r_woo_session_bundles.ajax_url,
+                url: gr8r_woo_session_bundles_admin.ajax_url,
                 dataType: 'json',
                 delay: 250,
                 data: function(params) {
                     return {
                         action: 'gr8r_woo_session_bundles_search_products',
-                        nonce: gr8r_woo_session_bundles.nonce,
+                        nonce: gr8r_woo_session_bundles_admin.nonce,
                         search: params.term,
-                        page: params.page || 1
+                        page: params.page || 1,
+                        exclude_ids: getBundledProductIds(),
                     };
                 },
                 processResults: function(data, params) {
-                    params.page = params.page || 1;
-                    
-                    return {
-                        results: data.data,
-                        pagination: {
-                            more: data.more
+                    const results = Array.isArray( data?.products ) ? data.products : [];
+
+                    // Populate the product details from the results.
+                    results.forEach( ( product ) => {
+                        if ( product?.id && ! productDetails[ product.id ] ) {
+                            productDetails[ product.id ] = product;
                         }
-                    };
+                    } );
+
+                    return { results };
                 },
                 cache: true
             },
-            placeholder: gr8r_woo_session_bundles.strings.select_products,
-            minimumInputLength: 2,
+            placeholder: gr8r_woo_session_bundles_admin.strings.select_products,
             templateResult: formatProductOption,
-            templateSelection: formatProductSelection
-        });
+            templateSelection: formatProductSelection,
+        } );
     }
     
     // Format product option for dropdown
@@ -45,131 +91,199 @@ jQuery(document).ready(function($) {
             return product.text;
         }
         
-        if (!product.id) {
-            return product.text;
-        }
-        
         var $option = $(
-            '<div class="product-option">' +
-                '<div class="product-name">' + product.text + '</div>' +
-                '<div class="product-price">' + product.price + '</div>' +
-            '</div>'
+            '<div>' + product.name + ' (#' + product.id + ') — ' + product.priceHTML + '</div>'
         );
         
         return $option;
     }
-    
-    // Format selected product
-    function formatProductSelection(product) {
-        return product.text || product.id;
+
+    function formatProductSelection( option ) {
+        if ( option.text ) {
+            return option.text;
+        }
+
+        return getBundledProductOneLine( option );
+    }
+
+    function getBundledProductOneLine( product ) {
+        return `${product.name} (#${product.id})`;
     }
     
     // Add product to bundle
     function addProductToBundle() {
-        var $selector = $('#session-bundle-product-selector');
-        var selectedProduct = $selector.select2('data')[0];
+        const productIdToAdd = $( '#gr8r-woo-session-bundles-add-bundled-product-selector' ).val();
+        const productData = $( '#gr8r-woo-session-bundles-add-bundled-product-selector' ).select2( 'data' )[0];
         
-        if (!selectedProduct || !selectedProduct.id) {
-            alert('Please select a product first.');
+        if ( ! productIdToAdd || ! productData ) {
             return;
         }
-        
-        // Check if product is already in bundle
-        if ($('.session-bundle-product-item[data-product-id="' + selectedProduct.id + '"]').length > 0) {
-            alert('This product is already in the bundle.');
+
+        const bundledElementId = 'gr8r-woo-session-bundles-bundled-session-product-' + productIdToAdd;
+        const bundledElement = $( '#' + bundledElementId );
+
+        if ( bundledElement.length > 0 ) {
+            // If we already have the product in the bundle, focus on the quantity input.
+            bundledElement.find( 'input.gr8r-woo-session-bundles-bundled-session-product-quantity-input' ).focus();
             return;
         }
-        
-        // Create product item HTML
-        var $productItem = $(
-            '<div class="session-bundle-product-item" data-product-id="' + selectedProduct.id + '">' +
-                '<div class="product-info">' +
-                    '<span class="product-title">' + selectedProduct.text + '</span>' +
-                    '<span class="product-price">' + selectedProduct.price + '</span>' +
-                '</div>' +
-                '<div class="product-quantity">' +
-                    '<label for="bundle_quantity_' + selectedProduct.id + '">' + gr8r_woo_session_bundle.strings.quantity + '</label>' +
-                    '<input type="number" id="bundle_quantity_' + selectedProduct.id + '" ' +
-                           'name="bundle_quantities[' + selectedProduct.id + ']" value="1" min="1" class="bundle-quantity-input" />' +
-                '</div>' +
-                '<button type="button" class="remove-bundle-product button-secondary">' + gr8r_woo_session_bundle.strings.remove_product + '</button>' +
-            '</div>'
-        );
-        
-        // Add to bundle
-        $('.session-bundle-products-list').append($productItem);
-        
-        // Clear selector
-        $selector.val(null).trigger('change');
-        
-        // Update bundle total
-        updateBundleTotal();
+
+        updateBundledSessions( { [ productIdToAdd ]: 1 } );
+
+        renderBundledSessions();
     }
     
     // Remove product from bundle
     function removeProductFromBundle() {
-        $(this).closest('.session-bundle-product-item').remove();
-        updateBundleTotal();
+        const productId = $(this).data( 'product-id' );
+
+        if ( ! productId ) {
+            return;
+        }
+
+        updateBundledSessions( { [ productId ]: 0 } );
+        $( '#gr8r-woo-session-bundles-bundled-session-product-' + productId ).remove();
     }
     
-    // Update quantity
-    function updateQuantity() {
-        updateBundleTotal();
+    function updateBundledSessionQuantity() {
+        const productId = $( this ).data( 'product-id' );
+        const quantity = $( this ).val();
+
+        if ( productId && quantity > 0 ) {
+            updateBundledSessions( { [ productId ]: quantity } );
+            updateBundleEffectiveTotal();
+        }
+    }
+
+   // Calculate and update effective bundle value.
+    function updateBundleEffectiveTotal() {
+        const bundledSessions = getBundledSessions();
+        const bundledSessionsValue = Object.entries( bundledSessions ).reduce(
+            ( total, [ productId, quantity ] ) => {
+                const productData = productDetails[ productId ];
+                if ( productData && quantity > 0 ) {
+                    return total + ( productData.price * quantity );
+                }
+
+                return total;
+            },
+            0
+        );
+
+        $( '.gr8r-woo-session-bundles-bundled-session-value-total' ).text( formatPrice( bundledSessionsValue ) );
     }
     
-    // Calculate and update bundle total
-    function updateBundleTotal() {
-        var total = 0;
-        
-        $('.session-bundle-product-item').each(function() {
-            var $item = $(this);
-            var productId = $item.data('product-id');
-            var quantity = parseInt($item.find('.bundle-quantity-input').val()) || 0;
-            
-            // Get product price from the price span
-            var priceText = $item.find('.product-price').text();
-            var price = parseFloat(priceText.replace(/[^\d.,]/g, '')) || 0;
-            
-            total += price * quantity;
-        });
-        
-        // Update total display
-        $('#bundle-total-price').text(formatPrice(total));
+    function _sprintf( format, ...args ) {
+        var result = String( format );
+
+        var replacement = result.match( /%(\d+)\$(s|d)/ );
+        while ( replacement ) {
+            const argIndex = replacement[1];
+            const replacementFormat = replacement[2];
+            const arg = args[ argIndex - 1 ] ?? '';
+            const formattedArg = _formatArg( arg, replacementFormat );
+            result = result.replace( replacement[0], formattedArg );
+            replacement = result.match( /%(\d+)\$(s|d)/ );
+        }
+
+        return result;
     }
-    
+
+    function _formatArg( value, format ) {
+        if ( format === 'd' ) {
+            return parseInt( value, 10 );
+        }
+
+        if ( format === 'f' ) {
+            return parseFloat( value );
+        }
+
+        return String( value );
+    }
+
     // Format price
     function formatPrice(price) {
-        return gr8r_woo_session_bundle.currency_symbol + price.toFixed(2);
-    }
-    
-    // Initialize when document is ready
-    if ($('#session-bundle-products-container').length > 0) {
-        initProductSelector();
-        
-        // Bind events
-        $(document).on('click', '#add-bundle-product', addProductToBundle);
-        $(document).on('click', '.remove-bundle-product', removeProductFromBundle);
-        $(document).on('change', '.bundle-quantity-input', updateQuantity);
-        
-        // Initial total calculation
-        updateBundleTotal();
-    }
-    
-    // Handle product type change
-    $('select#product-type').on('change', function() {
-        var productType = $(this).val();
-        
-        if (productType === 'session_bundle') {
-            $('#session-bundle-products-container').show();
-        } else {
-            $('#session-bundle-products-container').hide();
+        const storeCurrency = window?.wcSettings?.currency;
+        if ( ! storeCurrency ) {
+            return price.toFixed(2);
         }
-    });
-    
-    // Show/hide bundle container based on initial product type
-    if ($('select#product-type').val() === 'session_bundle') {
-        $('#session-bundle-products-container').show();
-    } else {
-        $('#session-bundle-products-container').hide();
+
+        const priceValue = storeCurrency.precision > 0 ? price.toFixed( storeCurrency.precision ) : price;
+        return _sprintf( storeCurrency.priceFormat, storeCurrency.symbol, priceValue );
     }
-}); 
+
+    function buildBundledSession( productId, productData, quantity = 1 ) {
+        const bundledElementId = `gr8r-woo-session-bundles-bundled-session-product-${ productId }`;
+
+        return $(
+            `<tr id="${ bundledElementId }" class="gr8r-woo-session-bundles-bundled-session" data-product-id="${ productId }">` +
+                `<td class="gr8r-woo-session-bundles-bundled-session-product-info">${ getBundledProductOneLine( productData ) }</td>` +
+                `<td class="gr8r-woo-session-bundles-bundled-session-product-price">${ productData.priceHTML }</td>` +
+                '<td class="gr8r-woo-session-bundles-bundled-session-product-quantity">' +
+                    `<input type="number" class="gr8r-woo-session-bundles-bundled-session-product-quantity-input" ` +
+                        `value="${ quantity }" min="1" max="25" data-product-id="${ productId }" />` +
+                '</td>' +
+                '<td>' +
+                    '<div class="gr8r-woo-session-bundles-bundled-session-product-actions">' +
+                        `<button type="button" class="gr8r-woo-session-bundles-remove-bundle-product button-secondary" data-product-id="${ productId }">${ gr8r_woo_session_bundles_admin.strings.remove_product }</button>` +
+                        `<a href="${ productData.url }" target="_blank">${ gr8r_woo_session_bundles_admin.strings.view_product }</a>` +
+                        `<a href="${ productData.edit_url }" target="_blank">${ gr8r_woo_session_bundles_admin.strings.edit_product }</a>` +
+                    '</div>' +
+                '</td>' +
+            '</tr>'
+        );
+    }
+
+    function renderBundledSessions() {
+        const bundledSessions = getBundledSessions();
+        const bundledSessionsTable = $( '.gr8r-woo-session-bundles-bundled-session-list-table' );
+        const bundledSessionsTableBody = $( '.gr8r-woo-session-bundles-bundled-session-list-body' );
+        bundledSessionsTableBody.empty();
+        
+        const bundledSessionEntries = Object.entries( bundledSessions );
+
+        // Ensure we show or hide the no bundled sessions message.
+        if ( bundledSessionEntries.length === 0 ) {
+            $( '.gr8r-woo-session-bundles-no-bundled-sessions' ).show();
+            bundledSessionsTable.hide();
+        } else {
+            $( '.gr8r-woo-session-bundles-no-bundled-sessions' ).hide();
+            bundledSessionsTable.show();
+        }
+
+        bundledSessionEntries.forEach( ( [ productId, quantity ] ) => {
+            const productData = productDetails[ productId ];
+            if ( productData ) {
+                const bundledSession = buildBundledSession( productId, productData, quantity );
+                bundledSessionsTableBody.append( bundledSession );
+            }
+        } );
+
+        updateBundleEffectiveTotal();
+
+        $( '.gr8r-woo-session-bundles-remove-bundle-product' ).on( 'click', removeProductFromBundle );
+        $( '.gr8r-woo-session-bundles-bundled-session-product-quantity-input' ).on( 'change', updateBundledSessionQuantity );
+    }
+
+    function toggleSessionBundleOptions() {
+        const isSessionBundle = $( '#_gr8r_is_session_bundle' ).prop( 'checked' );
+        if ( isSessionBundle ) {
+            $( '.show_if_bundled_sessions' ).show();
+        } else {
+            $( '.show_if_bundled_sessions' ).hide();
+        }
+    }
+
+    hydrateProductDetails();
+    hydrateBundledSessions();
+
+    $( '#gr8r-woo-session-bundles-add-bundle-product' ).on( 'click', addProductToBundle );
+
+    $( '#_gr8r_is_session_bundle' ).on( 'change', toggleSessionBundleOptions );
+
+    initProductSelector();
+
+    renderBundledSessions();
+
+    toggleSessionBundleOptions();
+} ); 

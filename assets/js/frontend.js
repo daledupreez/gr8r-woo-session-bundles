@@ -11,10 +11,10 @@ jQuery(document).ready(function($) {
         addBundleSummaryToCart();
         
         // Handle quantity changes for bundle products
-        handleBundleQuantityChanges();
+        //handleBundleQuantityChanges();
         
         // Add bundle info to product variations if needed
-        handleBundleVariations();
+        //handleBundleVariations();
     }
     
     // Add bundle summary to cart items
@@ -46,6 +46,7 @@ jQuery(document).ready(function($) {
     }
     
     // Handle quantity changes for bundle products
+    /*
     function handleBundleQuantityChanges() {
         $(document).on('change', '.qty', function() {
             var $input = $(this);
@@ -76,8 +77,10 @@ jQuery(document).ready(function($) {
             }
         });
     }
+    */
     
     // Handle bundle variations
+    /*
     function handleBundleVariations() {
         // Listen for variation changes
         $(document).on('found_variation', 'form.variations_form', function(event, variation) {
@@ -86,15 +89,19 @@ jQuery(document).ready(function($) {
             }
         });
     }
+    */
     
     // Update bundle info when variation changes
+    /*
     function updateBundleInfo(variation) {
         if (variation.bundle_summary) {
             $('.session-bundle-contents-summary').html(variation.bundle_summary);
         }
     }
+    */
     
     // Show stock warning
+    /*
     function showStockWarning(message) {
         var $warning = $('.session-bundle-stock-warning');
         
@@ -105,13 +112,17 @@ jQuery(document).ready(function($) {
         
         $warning.html(message).show();
     }
+    */
     
     // Hide stock warning
+    /*
     function hideStockWarning() {
         $('.session-bundle-stock-warning').hide();
     }
-    
+    */
+
     // Add bundle info to product data
+	/*
     function addBundleInfoToProductData() {
         $('.single-product').each(function() {
             var $product = $(this);
@@ -146,10 +157,11 @@ jQuery(document).ready(function($) {
             }
         });
     }
+    */
     
     // Initialize tooltips for bundle information
     function initBundleTooltips() {
-        $('.session-bundle-description, .session-bundle-contents-summary').each(function() {
+        $('.gr8r-session-bundle-description, .session-bundle-contents-summary').each(function() {
             var $element = $(this);
             
             // Add tooltip functionality if needed
@@ -222,7 +234,7 @@ jQuery(document).ready(function($) {
     // Initialize when document is ready
     if (typeof gr8r_woo_session_bundle !== 'undefined') {
         initSessionBundle();
-        addBundleInfoToProductData();
+        //addBundleInfoToProductData();
         initBundleTooltips();
         handleBundleQuickView();
     }
