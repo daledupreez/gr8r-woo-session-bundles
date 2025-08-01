@@ -29,7 +29,7 @@ function gr8r_session_bundles_save_product_bundle_meta( $product_id, ?array $ses
 		return;
 	}
 
-	update_post_meta( $product_id, '_gr8r_bundled_sessions', $session_bundle_data );
+	update_post_meta( $product_id, '_gr8r_bundled_sessions', json_encode( $session_bundle_data ) );
 }
 
 /**
@@ -41,11 +41,17 @@ function gr8r_session_bundles_save_product_bundle_meta( $product_id, ?array $ses
 function gr8r_session_bundles_get_product_bundle_meta( $product_id ): array {
 	$stored_meta = get_post_meta( $product_id, '_gr8r_bundled_sessions', true );
 
-	if ( ! is_array( $stored_meta ) ) {
+	if ( empty( $stored_meta ) ) {
 		return array();
 	}
 
-	return gr8r_session_bundles_sanitize_bundle_data( $stored_meta );
+	$decoded_meta = json_decode( $stored_meta, true );
+
+	if ( ! is_array( $decoded_meta ) ) {
+		return array();
+	}
+
+	return gr8r_session_bundles_sanitize_bundle_data( $decoded_meta );
 }
 
 /**
