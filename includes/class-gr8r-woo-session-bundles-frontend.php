@@ -26,7 +26,7 @@ class GR8R_Woo_Session_Bundles_Frontend {
 		add_action( 'woocommerce_single_product_summary', array( $this, 'display_bundle_description' ), 25 );
 		add_action( 'woocommerce_after_shop_loop_item_title', array( $this, 'display_bundle_description_loop' ), 15 );
 
-		add_action( 'woocommerce_before_add_to_cart_button', array( $this, 'display_bundle_contents' ) );
+		//add_action( 'woocommerce_before_add_to_cart_button', array( $this, 'display_bundle_contents' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_scripts' ) );
 	}
 
