@@ -1,17 +1,17 @@
 <?php
 /**
- * Plugin Name: Gr8r Session Bundles for WooCommerce
- * Plugin URI: https://example.com/gr8r-woo-session-bundles
- * Description: Adds a new Session Bundle product type to WooCommerce that allows bundling multiple products with custom quantities.
- * Version: 1.0.0
- * Author: Your Name
- * Author URI: https://example.com
+ * Plugin Name: GR8R Session Bundles for WooCommerce
+ * Plugin URI: https://github.com/daledupreez/gr8r-woo-session-bundles
+ * Description: Adds session bundling to WooCommerce.
+ * Version: 0.1.1
+ * Author: GR8R Than Fitness
+ * Author URI: https://gr8r.fit
  * Text Domain: gr8r-woo-session-bundles
  * Domain Path: /languages
- * Requires at least: 5.0
- * Tested up to: 6.4
- * WC requires at least: 5.0
- * WC tested up to: 8.0
+ * Requires at least: 6.6
+ * Tested up to: 6.8.2
+ * WC requires at least: 9.8
+ * WC tested up to: 10.0
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  */
