@@ -127,7 +127,16 @@ class GR8R_Woo_Session_Bundles_Admin {
 	public function enqueue_admin_scripts( $hook ) {
 		global $post_type;
 
-		if ( 'product' !== $post_type ) {
+		$should_enqueue = false;
+		$screen = get_current_screen();
+
+		if ( 'product' === $post_type || 'shop_order' === $post_type ) {
+			$should_enqueue = true;
+		} elseif ( 'shop_order' === $screen->post_type ) {
+			$should_enqueue = true;
+		}
+
+		if ( ! $should_enqueue ) {
 			return;
 		}
 
@@ -148,7 +157,6 @@ class GR8R_Woo_Session_Bundles_Admin {
 
 		$bundled_product_details = array();
 
-		$screen = get_current_screen();
 		if ( $screen && $screen->id === 'product' && $screen->base === 'post' ) {
 			$current_post = get_post();
 			if ( $current_post ) {

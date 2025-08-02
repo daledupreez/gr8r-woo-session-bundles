@@ -57,6 +57,11 @@ h3.gr8r-woo-session-bundles-bundled-session-list-title {
 	align-items: center;
 }
 
+.gr8r-woo-session-bundles-order-item-meta-details h4 {
+	margin-bottom: 0.5em;
+	margin-top: 0.5em;
+}
+
 .gr8r-woo-session-bundles-order-item-meta-details ul {
 	margin-bottom: 0;
 	margin-top: 0;
