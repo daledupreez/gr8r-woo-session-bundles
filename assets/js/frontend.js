@@ -9,12 +9,6 @@ jQuery(document).ready(function($) {
     function initSessionBundle() {
         // Add bundle summary to cart items
         addBundleSummaryToCart();
-        
-        // Handle quantity changes for bundle products
-        //handleBundleQuantityChanges();
-        
-        // Add bundle info to product variations if needed
-        //handleBundleVariations();
     }
     
     // Add bundle summary to cart items
@@ -44,120 +38,6 @@ jQuery(document).ready(function($) {
             }
         });
     }
-    
-    // Handle quantity changes for bundle products
-    /*
-    function handleBundleQuantityChanges() {
-        $(document).on('change', '.qty', function() {
-            var $input = $(this);
-            var $form = $input.closest('form');
-            var $product = $form.find('input[name="add-to-cart"]');
-            
-            if ($product.length && $product.val()) {
-                // Check if this is a session bundle product
-                $.ajax({
-                    url: wc_session_bundle.ajax_url,
-                    type: 'POST',
-                    data: {
-                        action: 'gr8r_woo_session_bundle_check_stock',
-                        nonce: gr8r_woo_session_bundle.nonce,
-                        product_id: $product.val(),
-                        quantity: $input.val()
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            if (!response.data.in_stock) {
-                                showStockWarning(response.data.message);
-                            } else {
-                                hideStockWarning();
-                            }
-                        }
-                    }
-                });
-            }
-        });
-    }
-    */
-    
-    // Handle bundle variations
-    /*
-    function handleBundleVariations() {
-        // Listen for variation changes
-        $(document).on('found_variation', 'form.variations_form', function(event, variation) {
-            if (variation.product_type === 'session_bundle') {
-                updateBundleInfo(variation);
-            }
-        });
-    }
-    */
-    
-    // Update bundle info when variation changes
-    /*
-    function updateBundleInfo(variation) {
-        if (variation.bundle_summary) {
-            $('.session-bundle-contents-summary').html(variation.bundle_summary);
-        }
-    }
-    */
-    
-    // Show stock warning
-    /*
-    function showStockWarning(message) {
-        var $warning = $('.session-bundle-stock-warning');
-        
-        if ($warning.length === 0) {
-            $warning = $('<div class="session-bundle-stock-warning woocommerce-error" role="alert"></div>');
-            $('.woocommerce-error, .woocommerce-message').after($warning);
-        }
-        
-        $warning.html(message).show();
-    }
-    */
-    
-    // Hide stock warning
-    /*
-    function hideStockWarning() {
-        $('.session-bundle-stock-warning').hide();
-    }
-    */
-
-    // Add bundle info to product data
-	/*
-    function addBundleInfoToProductData() {
-        $('.single-product').each(function() {
-            var $product = $(this);
-            var productId = $product.find('input[name="add-to-cart"]').val();
-            
-            if (productId) {
-                $.ajax({
-                    url: wc_session_bundle.ajax_url,
-                    type: 'POST',
-                    data: {
-                        action: 'gr8r_woo_session_bundle_get_product_data',
-                        nonce: gr8r_woo_session_bundle.nonce,
-                        product_id: productId
-                    },
-                    success: function(response) {
-                        if (response.success && response.data.is_bundle) {
-                            // Add bundle-specific data to product
-                            $product.addClass('session-bundle-product');
-                            
-                            // Update price if needed
-                            if (response.data.price_html) {
-                                $('.price .amount').html(response.data.price_html);
-                            }
-                            
-                            // Add bundle indicator
-                            if (!$('.session-bundle-indicator').length) {
-                                $('.product_title').after('<span class="session-bundle-indicator">Bundle Product</span>');
-                            }
-                        }
-                    }
-                });
-            }
-        });
-    }
-    */
     
     // Initialize tooltips for bundle information
     function initBundleTooltips() {
