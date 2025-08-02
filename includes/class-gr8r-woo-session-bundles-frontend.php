@@ -38,15 +38,6 @@ class GR8R_Woo_Session_Bundles_Frontend {
 
 	}
 
-	public function debug_filter( $result, ...$args ) {
-		gr8r_debug( [
-			'current_filter' => current_filter(),
-			'result' => $result,
-			'args' => $args,
-		] );
-		return $result;
-	}
-
 	/**
 	 * Render the bundle details for an order line item.
 	 *

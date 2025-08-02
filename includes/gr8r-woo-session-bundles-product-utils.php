@@ -155,7 +155,3 @@ function gr8r_session_bundles_get_bundle_description( array $bundled_products, $
 
 	return $description;
 }
-
-function gr8r_debug( $data ) {
-	error_log( 'gr8r_debug: ' . json_encode( $data ) . "\n", 3, WP_CONTENT_DIR . '/debug.log' );
-}
