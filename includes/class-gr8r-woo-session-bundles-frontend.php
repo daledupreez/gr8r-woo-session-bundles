@@ -36,6 +36,7 @@ class GR8R_Woo_Session_Bundles_Frontend {
 		add_action( 'woocommerce_order_item_meta_end', array( $this, 'render_order_item_bundle_details' ), 10, 4 );
 		add_action( 'woocommerce_after_order_itemmeta', array( $this, 'render_order_line_item_bundle' ), 10, 2 );
 
+		add_action( 'woocommerce_payment_complete', array( $this, 'handle_payment_complete' ), 10, 2 );
 	}
 
 	/**
@@ -307,5 +308,140 @@ class GR8R_Woo_Session_Bundles_Frontend {
 		}
 
 		return $summary;
+	}
+
+	/**
+	 * Handle the payment complete action.
+	 *
+	 * @param int    $order_id       The order ID.
+	 * @param string $transaction_id The transaction ID.
+	 */
+	public function handle_payment_complete( $order_id, $transaction_id ): void {
+		$order = wc_get_order( $order_id );
+
+		if ( ! $order ) {
+			return;
+		}
+
+		$order_items = $order->get_items();
+
+		foreach ( $order_items as $order_item ) {
+			if ( gr8r_session_bundles_is_bundle_order_item( $order_item ) ) {
+				$this->generate_credits_for_order_item( $order_item );
+			}
+		}
+	}
+
+	/**
+	 * Generate credits for an order item.
+	 *
+	 * @param WC_Order_Item_Product $order_item The order item.
+	 */
+	protected function generate_credits_for_order_item( $order_item ): void {
+		$bundled_products = gr8r_session_bundles_get_order_item_bundle_meta( $order_item->get_id() );
+
+		if ( empty( $bundled_products ) ) {
+			return;
+		}
+
+		foreach ( $bundled_products as $product_id => $quantity ) {
+			// TODO: Make it possible for other code to hook into this logic so we can generate other types of credits.
+			$this->generate_coupon_for_product( $product_id, $quantity, $order_item );
+		}
+	}
+
+	/**
+	 * Generate a coupon for a product.
+	 *
+	 * @param int                   $product_id    The product ID.
+	 * @param int                   $quantity      The quantity of the product.
+	 * @param WC_Order_Item_Product $order_item The order item.
+	 */
+	protected function generate_coupon_for_product( $product_id, $quantity, $order_item ): void {
+		$product = wc_get_product( $product_id );
+		if ( ! $product ) {
+			return;
+		}
+
+		$order = $order_item->get_order();
+		if ( ! $order ) {
+			return;
+		}
+
+		$coupon_root = 'gr8r_credit_' . $product_id . '_' . $order_item->get_id();
+
+		/**
+		 * Filter the coupon root when generating a credit coupon.
+		 *
+		 * @param string                $coupon_root   The coupon root.
+		 * @param WC_Product            $product       The product.
+		 * @param WC_Order_Item_Product $order_item    The order item.
+		 */
+		$coupon_root = apply_filters( 'gr8r_woo_session_bundles_coupon_root', $coupon_root, $product, $order_item );
+
+
+		$email       = null;
+		$customer_id = $order->get_customer_id();
+		if ( $customer_id ) {
+			$customer = new WC_Customer( $customer_id );
+			$email = $customer->get_email();
+		}
+
+		if ( empty( $email ) ) {
+			$email = $order->get_billing_email();
+		}
+
+		for ( $i = 0; $i < $quantity; $i++ ) {
+			$coupon_code = $coupon_root . '_' . $i;
+
+			$count = 0;
+			while ( $count < 10 ) {
+				$count++;
+				$coupon_code = $coupon_root . '_' . $i . '_' . $count;
+				if ( ! $this->coupon_exists( $coupon_code ) ) {
+					break;
+				}
+
+				if ( $count === 10 ) {
+					$coupon_code = null;
+				}
+			}
+
+			// TODO: Handle the case where we could not generate a valid coupon code.
+
+			if ( null !== $coupon_code ) {
+				$expiry_date = new DateTime( '+1 month', new DateTimeZone( 'UTC' ) );
+
+				$coupon = new WC_Coupon( $coupon_code );
+				$coupon->set_discount_type( 'percent' );
+				$coupon->set_amount( 100 );
+				$coupon->set_product_ids( array( $product_id ) );
+				$coupon->set_usage_limit( 1 );
+				$coupon->set_usage_limit_per_user( 1 );
+				$coupon->set_limit_usage_to_x_items( 1 );
+				$coupon->set_date_expires( $expiry_date->getTimestamp() );
+				$coupon->set_email_restrictions( array( $email ) );
+
+				$save_result = $coupon->save();
+				gr8r_debug( [
+					'saving coupon' => true,
+					'coupon_code' => $coupon_code,
+					'save_result' => $save_result,
+					'coupon' => $coupon,
+				] );
+			}
+		}
+	}
+
+	/**
+	 * Check if a coupon exists.
+	 *
+	 * @param string $coupon_code The coupon code.
+	 * @return bool True if the coupon exists, false otherwise.
+	 */
+	protected function coupon_exists( string $coupon_code ): bool {
+		$coupon = new WC_Coupon( $coupon_code );
+
+		return (bool) $coupon->get_id() || $coupon->get_virtual();
 	}
 }
