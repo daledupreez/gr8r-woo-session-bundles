@@ -262,7 +262,7 @@ class GR8R_Woo_Session_Bundles_Frontend {
 	 * @since 1.0.0
 	 */
 	public function handle_new_order_item( $order_item_id, $order_item ) {
-		if ( ! $order_item || ! $item instanceof WC_Order_Item_Product ) {
+		if ( ! $order_item || ! $order_item instanceof WC_Order_Item_Product ) {
 			return;
 		}
 
