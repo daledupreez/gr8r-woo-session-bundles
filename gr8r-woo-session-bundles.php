@@ -133,7 +133,6 @@ class GR8R_Woo_Session_Bundles {
 	 */
 	private function init_hooks() {
 		// Add product type.
-		add_filter( 'product_type_selector', array( $this, 'add_session_bundle_product_type' ) );
 		add_filter( 'woocommerce_product_class', array( $this, 'load_session_bundle_product_class' ), 10, 2 );
 
 		// Initialize admin and frontend.
@@ -141,18 +140,6 @@ class GR8R_Woo_Session_Bundles {
 			$this->admin = new GR8R_Woo_Session_Bundles_Admin();
 		}
 		$this->frontend = new GR8R_Woo_Session_Bundles_Frontend();
-	}
-
-	/**
-	 * Add Session Bundle to product type selector
-	 *
-	 * @param array $types Product types.
-	 * @return array
-	 * @since 1.0.0
-	 */
-	public function add_session_bundle_product_type( $types ) {
-		$types['session_bundle'] = __( 'Session Bundle', 'gr8r-woo-session-bundles' );
-		return $types;
 	}
 
 	/**
