@@ -97,19 +97,44 @@ function gr8r_session_bundles_save_product_is_bundle_meta( $product_id, bool $is
 }
 
 /**
- * Get bundle description
+ * Get bundle description for a product.
  *
- * @return string
- * @since 1.0.0
+ * @param int $product_id The product ID.
+ * @return string The HTML description for the bundle.
  */
-function gr8r_session_bundles_get_bundle_description( $product_id ): string {
+function gr8r_session_bundles_get_product_bundle_description( $product_id ): string {
 	$bundled_products = gr8r_session_bundles_get_product_bundle_meta( $product_id );
 	if ( empty( $bundled_products ) ) {
 		return '';
 	}
 
-	$description = '<div class="gr8r-session-bundle-contents">';
-	$description .= '<h4>' . esc_html__( 'Included Sessions:', 'gr8r-woo-session-bundles' ) . '</h4>';
+	return gr8r_session_bundles_get_bundle_description( $bundled_products );
+}
+
+/**
+ * Get bundle description for some bundled products.
+ *
+ * @param int[] $bundled_products The bundled products.
+ * @param array $options {
+ *     @type bool   $skip_header    Whether to skip the header. Default false.
+ *     @type string $header_element The element to use for the header. Default 'h4'.
+ *     @type string $wrapper_class  The class to use for the wrapper div. Default 'gr8r-session-bundle-contents'.
+ * }
+ * @return string The HTML description for the bundle.
+ */
+function gr8r_session_bundles_get_bundle_description( array $bundled_products, $options = array() ): string {
+	$defaults = array(
+		'skip_header'    => false,
+		'header_element' => 'h4',
+		'wrapper_class'  => 'gr8r-session-bundle-contents',
+	);
+
+	$options = wp_parse_args( $options, $defaults );
+
+	$description = '<div class="' . esc_attr( $options['wrapper_class'] ) . '">';
+	if ( ! $options['skip_header'] ) {
+		$description .= '<' . esc_html( $options['header_element'] ) . '>' . esc_html__( 'Included Sessions:', 'gr8r-woo-session-bundles' ) . '</' . esc_html( $options['header_element'] ) . '>';
+	}
 	$description .= '<ul>';
 
 	foreach ( $bundled_products as $product_id => $quantity ) {

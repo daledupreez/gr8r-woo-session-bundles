@@ -42,7 +42,7 @@ class GR8R_Woo_Session_Bundles_Frontend {
 			return;
 		}
 
-		$bundle_description = gr8r_session_bundles_get_bundle_description( $product->get_id() );
+		$bundle_description = gr8r_session_bundles_get_product_bundle_description( $product->get_id() );
 
 		if ( ! empty( $bundle_description ) ) {
 			echo '<div class="gr8r-session-bundle-description">';
