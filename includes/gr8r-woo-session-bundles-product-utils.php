@@ -133,7 +133,7 @@ function gr8r_session_bundles_get_bundle_description( array $bundled_products, $
 
 	$description = '<div class="' . esc_attr( $options['wrapper_class'] ) . '">';
 	if ( ! $options['skip_header'] ) {
-		$description .= '<' . esc_html( $options['header_element'] ) . '>' . esc_html__( 'Included Sessions:', 'gr8r-woo-session-bundles' ) . '</' . esc_html( $options['header_element'] ) . '>';
+		$description .= '<' . esc_html( $options['header_element'] ) . '>' . esc_html__( 'Included sessions:', 'gr8r-woo-session-bundles' ) . '</' . esc_html( $options['header_element'] ) . '>';
 	}
 	$description .= '<ul>';
 
