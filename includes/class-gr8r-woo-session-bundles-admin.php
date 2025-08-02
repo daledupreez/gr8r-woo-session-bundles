@@ -67,8 +67,6 @@ class GR8R_Woo_Session_Bundles_Admin {
 
 		wp_nonce_field( 'gr8r_woo_session_bundles_meta', '_gr8r_woo_session_bundles_meta_nonce' );
 
-
-		//$debug = $product->get_data_store()->
 		?>
 		<div class="gr8r-woo-session-bundles-bundled-session-list">
 			<h3 class="gr8r-woo-session-bundles-bundled-session-list-title">
@@ -336,12 +334,6 @@ class GR8R_Woo_Session_Bundles_Admin {
 		if ( ! empty( $_GET['exclude_ids'] ) ) {
 			$exclude_ids = array_map( 'absint', (array) wp_unslash( $_GET['exclude_ids'] ) );
 		}
-
-		$result['debug'] = array(
-			'search_term' => $search_term,
-			'page'        => $page,
-			'exclude_ids' => $exclude_ids,
-		);
 
 		// TODO: Add a filter or logic to limit the results to the vendor for the current user. Maybe Dokan offers a vendor-specific search API?
 
