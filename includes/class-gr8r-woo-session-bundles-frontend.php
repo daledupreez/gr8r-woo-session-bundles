@@ -28,10 +28,123 @@ class GR8R_Woo_Session_Bundles_Frontend {
 
 		//add_action( 'woocommerce_before_add_to_cart_button', array( $this, 'display_bundle_contents' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_scripts' ) );
+
+		add_action( 'woocommerce_new_order_item', array( $this, 'handle_new_order_item' ), 10, 2 );
+
+		// Order display
+		add_filter( 'woocommerce_order_item_class', array( $this, 'add_bundle_order_item_class' ), 10, 2 );
+		add_action( 'woocommerce_order_item_meta_end', array( $this, 'render_order_item_bundle_details' ), 10, 4 );
+		add_action( 'woocommerce_after_order_itemmeta', array( $this, 'render_order_line_item_bundle' ), 10, 2 );
+
+	}
+
+	public function debug_filter( $result, ...$args ) {
+		gr8r_debug( [
+			'current_filter' => current_filter(),
+			'result' => $result,
+			'args' => $args,
+		] );
+		return $result;
 	}
 
 	/**
-	 * Display bundle description on single product page
+	 * Render the bundle details for an order line item.
+	 *
+	 * @param int                   $order_item_id Order item ID.
+	 * @param WC_Order_Item_Product $order_item    Order item product.
+	 */
+	public function render_order_line_item_bundle( $order_item_id, $order_item ) {
+		if ( ! gr8r_session_bundles_is_bundle_order_item( $order_item ) ) {
+			return;
+		}
+
+		$bundled_products = gr8r_session_bundles_get_order_item_bundle_meta( $order_item_id );
+
+		if ( empty( $bundled_products ) ) {
+			return;
+		}
+
+		echo gr8r_session_bundles_get_bundle_description(
+			$bundled_products,
+			array(
+				'wrapper_class'  => 'gr8r-woo-session-bundles-order-item-meta-details',
+			)
+		);
+	}
+
+	/**
+	 * Add bundle order item class to order items that are bundles.
+	 *
+	 * @param string $class Order item class.
+	 * @param WC_Order_Item_Product $item Order item product.
+	 * @param WC_Order $order Order object.
+	 * @return string
+	 * @since 1.0.0
+	 */
+	public function add_bundle_order_item_class( $class, $item ) {
+		if ( gr8r_session_bundles_is_bundle_order_item( $item ) ) {
+			$class .= ' gr8r-woo-session-bundles-order-item';
+		}
+		return $class;
+	}
+
+	/**
+	 * Render the bundle details for an order item. Intended to use a hook for wp-admin and email generation.
+	 *
+	 * @param int                   $order_item_id Order item ID.
+	 * @param WC_Order_Item_Product $order_item    Order item product.
+	 * @param WC_Order              $order         Order object.
+	 * @param bool                  $is_plain_text Whether the email is plain text or not.
+	 */
+	public function render_order_item_bundle_details( $order_item_id, $order_item, $order, $is_plain_text ): void {
+		if ( ! gr8r_session_bundles_is_bundle_order_item( $order_item ) ) {
+			return;
+		}
+
+		$bundled_products = gr8r_session_bundles_get_order_item_bundle_meta( $order_item_id );
+
+		if ( empty( $bundled_products ) ) {
+			return;
+		}
+
+		if ( $is_plain_text ) {
+			$this->render_order_item_bundle_details_plain_text( $bundled_products );
+			return;
+		}
+
+		echo gr8r_session_bundles_get_bundle_description(
+			$bundled_products,
+			array(
+				'wrapper_class'  => 'gr8r-woo-session-bundles-order-item-details',
+			)
+		);
+	}
+
+	/**
+	 * Render the bundle details for an order item in plain text.
+	 *
+	 * @param int[] $bundled_products The bundled products.
+	 */
+	protected function render_order_item_bundle_details_plain_text( array $bundled_products ): void {
+		echo "\n -";
+		esc_html_e( 'Included sessions:', 'gr8r-woo-session-bundles' );
+		echo "\n";
+		foreach ( $bundled_products as $product_id => $quantity ) {
+			$product = wc_get_product( $product_id );
+			if ( $product ) {
+				echo "\n   * " . sprintf(
+					'%1$s × %2$s - %3$s %4$s',
+					esc_html( $quantity ),
+					esc_html( strip_tags( $product->get_name() ) ),
+					esc_html__( 'each valued at', 'gr8r-woo-session-bundles' ),
+					strip_tags( $product->get_price_html() )
+				) . "\n";
+			}
+		}
+	}
+
+	/**
+	 * Display bundle description on single product page.
 	 *
 	 * @since 1.0.0
 	 */
@@ -142,6 +255,32 @@ class GR8R_Woo_Session_Bundles_Frontend {
 	}
 
 	/**
+	 * Hook into the `woocommerce_new_order_item` action to save the bundle meta data in the newly created order item.
+	 *
+	 * @param int                   $order_item_id The order item ID.
+	 * @param WC_Order_Item_Product $order_item    The order item product.
+	 * @since 1.0.0
+	 */
+	public function handle_new_order_item( $order_item_id, $order_item ) {
+		if ( ! $order_item || ! $item instanceof WC_Order_Item_Product ) {
+			return;
+		}
+
+		$product_id = $order_item->get_product_id();
+
+		if ( ! gr8r_session_bundles_is_bundle_product( $product_id ) ) {
+			return;
+		}
+
+		$bundled_products = gr8r_session_bundles_get_product_bundle_meta( $product_id );
+
+		if ( is_array( $bundled_products ) && [] !== $bundled_products ) {
+			gr8r_session_bundles_save_order_item_bundle_meta( $order_item_id, $bundled_products );
+			gr8r_session_bundles_save_order_item_is_bundle_meta( $order_item_id, true );
+		}
+	}
+
+	/**
 	 * Get bundle summary for cart/checkout
 	 *
 	 * @param int $product_id Product ID.
@@ -178,4 +317,4 @@ class GR8R_Woo_Session_Bundles_Frontend {
 
 		return $summary;
 	}
-} 
+}
