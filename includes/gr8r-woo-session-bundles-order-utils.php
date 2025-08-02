@@ -33,11 +33,7 @@ function gr8r_session_bundles_get_order_item_bundle_meta( $order_item_id ): arra
 		return array();
 	}
 
-	if ( is_array( $stored_meta ) ) {
-		$decoded_meta = $stored_meta;
-	} else {
-		$decoded_meta = json_decode( $stored_meta, true );
-	}
+	$decoded_meta = json_decode( $stored_meta, true );
 
 	if ( ! is_array( $decoded_meta ) ) {
 		return array();
