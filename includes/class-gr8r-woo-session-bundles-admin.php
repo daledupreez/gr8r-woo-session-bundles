@@ -191,14 +191,37 @@ class GR8R_Woo_Session_Bundles_Admin {
 		return $product_details;
 	}
 
+	/**
+	 * Get the supported product types for session bundles.
+	 *
+	 * @return string[] The supported product types.
+	 */
 	public function get_supported_product_types(): array {
+		$default_product_types = array( 'simple', 'subscription' );
+
 		/**
 		 * Filter the supported product types for session bundles. Defaults to simple and subscription products.
 		 *
 		 * @param string[] $supported_product_types The supported product types.
 		 * @since 1.0.0
 		 */
-		return apply_filters( 'gr8r_woo_session_bundles_supported_product_types', array( 'simple', 'subscription' ) );
+		return apply_filters( 'gr8r_woo_session_bundles_supported_product_types', $default_product_types );
+	}
+
+	/**
+	 * Get the allowed bundled product types for session bundles.
+	 *
+	 * @return string[] The allowed bundled product types.
+	 */
+	public function get_allowed_bundled_product_types(): array {
+		$default_product_types = array( 'booking' );
+
+		/**
+		 * Filter the allowed bundled product types for session bundles. Defaults to booking products.
+		 *
+		 * @param string[] $allowed_bundled_product_types The allowed bundled product types.
+		 */
+		return apply_filters( 'gr8r_woo_session_bundles_allowed_bundled_product_types', $default_product_types );
 	}
 
 	/**
@@ -338,16 +361,16 @@ class GR8R_Woo_Session_Bundles_Admin {
 		// TODO: Add a filter or logic to limit the results to the vendor for the current user. Maybe Dokan offers a vendor-specific search API?
 
 		if ( ! empty( $search_term ) ) {
-			$supported_product_types = $this->get_supported_product_types();
+			$allowed_bundled_product_types = $this->get_allowed_bundled_product_types();
 
-			if ( ! empty( $supported_product_types ) ) {
+			if ( ! empty( $allowed_bundled_product_types ) ) {
 				$data_store  = WC_Data_Store::load( 'product' );
 				$product_ids = $data_store->search_products( $search_term, '', false, false, 30, array(), $exclude_ids );
 
 				foreach ( $product_ids as $product_id ) {
 					$product = wc_get_product( $product_id );
 
-					if ( $product && in_array( $product->get_type(), $supported_product_types, true ) ) {
+					if ( $product && in_array( $product->get_type(), $allowed_bundled_product_types, true ) ) {
 						$products[] = $this->get_product_details( $product );
 					}
 				}
