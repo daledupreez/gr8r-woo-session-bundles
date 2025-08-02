@@ -132,29 +132,11 @@ class GR8R_Woo_Session_Bundles {
 	 * @since 1.0.0
 	 */
 	private function init_hooks() {
-		// Add product type.
-		add_filter( 'woocommerce_product_class', array( $this, 'load_session_bundle_product_class' ), 10, 2 );
-
 		// Initialize admin and frontend.
 		if ( is_admin() ) {
 			$this->admin = new GR8R_Woo_Session_Bundles_Admin();
 		}
 		$this->frontend = new GR8R_Woo_Session_Bundles_Frontend();
-	}
-
-	/**
-	 * Load Session Bundle product class
-	 *
-	 * @param string $classname Product class name.
-	 * @param string $product_type Product type.
-	 * @return string
-	 * @since 1.0.0
-	 */
-	public function load_session_bundle_product_class( $classname, $product_type ) {
-		if ( 'session_bundle' === $product_type ) {
-			return 'GR8R_Woo_Session_Bundles_Product';
-		}
-		return $classname;
 	}
 
 	/**

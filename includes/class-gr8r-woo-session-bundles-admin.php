@@ -338,14 +338,18 @@ class GR8R_Woo_Session_Bundles_Admin {
 		// TODO: Add a filter or logic to limit the results to the vendor for the current user. Maybe Dokan offers a vendor-specific search API?
 
 		if ( ! empty( $search_term ) ) {
-			$data_store  = WC_Data_Store::load( 'product' );
-			$product_ids = $data_store->search_products( $search_term, '', false, false, 30, array(), $exclude_ids );
+			$supported_product_types = $this->get_supported_product_types();
 
-			foreach ( $product_ids as $product_id ) {
-				$product = wc_get_product( $product_id );
+			if ( ! empty( $supported_product_types ) ) {
+				$data_store  = WC_Data_Store::load( 'product' );
+				$product_ids = $data_store->search_products( $search_term, '', false, false, 30, array(), $exclude_ids );
 
-				if ( $product && 'session_bundle' !== $product->get_type() ) {
-					$products[] = $this->get_product_details( $product );
+				foreach ( $product_ids as $product_id ) {
+					$product = wc_get_product( $product_id );
+
+					if ( $product && in_array( $product->get_type(), $supported_product_types, true ) ) {
+						$products[] = $this->get_product_details( $product );
+					}
 				}
 			}
 		}
