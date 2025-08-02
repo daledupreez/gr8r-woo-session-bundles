@@ -37,6 +37,7 @@ class GR8R_Woo_Session_Bundles_Admin {
 		add_action( 'wp_ajax_gr8r_woo_session_bundles_check_stock', array( $this, 'ajax_check_stock' ) );
 		add_action( 'wp_ajax_gr8r_woo_session_bundles_get_product_data', array( $this, 'ajax_get_product_data' ) );
 	
+		add_filter( 'woocommerce_hidden_order_itemmeta', array( $this, 'hide_order_item_bundle_flag' ) );
 	}
 
 	/**
@@ -105,6 +106,17 @@ class GR8R_Woo_Session_Bundles_Admin {
 		</div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Helper function to ensure that we don't render the `_gr8r_is_bundle` meta flag.
+	 *
+	 * @param string[] $hidden_order_itemmeta The hidden meta fields.
+	 * @return string[]
+	 */
+	public function hide_order_item_bundle_flag( array $hidden_order_itemmeta ): array {
+		$hidden_order_itemmeta[] = '_gr8r_is_bundle';
+		return $hidden_order_itemmeta;
 	}
 
 	/**
@@ -442,4 +454,4 @@ class GR8R_Woo_Session_Bundles_Admin {
 
 		wp_send_json_error();
 	}
-} 
+}
