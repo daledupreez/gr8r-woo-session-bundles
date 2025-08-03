@@ -3,7 +3,7 @@
  * Plugin Name: GR8R Session Bundles for WooCommerce
  * Plugin URI: https://github.com/daledupreez/gr8r-woo-session-bundles
  * Description: Adds session bundling to WooCommerce.
- * Version: 0.1.1
+ * Version: 0.1.4
  * Author: GR8R Than Fitness
  * Author URI: https://gr8r.fit
  * Text Domain: gr8r-woo-session-bundles
@@ -22,14 +22,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants.
-define( 'GR8R_WOO_SESSION_BUNDLE_VERSION', '1.0.0' );
+define( 'GR8R_WOO_SESSION_BUNDLE_VERSION', '0.1.4' );
 define( 'GR8R_WOO_SESSION_BUNDLE_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'GR8R_WOO_SESSION_BUNDLE_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 
 /**
  * Main Gr8r Session Bundles for WooCommerce Class
- *
- * @since 1.0.0
  */
 class GR8R_Woo_Session_Bundles {
 
@@ -37,7 +35,6 @@ class GR8R_Woo_Session_Bundles {
 	 * Plugin instance.
 	 *
 	 * @var GR8R_Woo_Session_Bundles
-	 * @since 1.0.0
 	 */
 	private static $instance = null;
 
@@ -45,7 +42,6 @@ class GR8R_Woo_Session_Bundles {
 	 * Admin instance.
 	 *
 	 * @var GR8R_Woo_Session_Bundles_Admin
-	 * @since 1.0.0
 	 */
 	private $admin;
 
@@ -53,14 +49,11 @@ class GR8R_Woo_Session_Bundles {
 	 * Frontend instance.
 	 *
 	 * @var GR8R_Woo_Session_Bundles_Frontend
-	 * @since 1.0.0
 	 */
 	private $frontend;
 
 	/**
 	 * Private constructor to prevent direct instantiation
-	 *
-	 * @since 1.0.0
 	 */
 	private function __construct() {
 		add_action( 'init', array( $this, 'init' ) );
@@ -70,7 +63,6 @@ class GR8R_Woo_Session_Bundles {
 	 * Get plugin instance
 	 *
 	 * @return GR8R_Woo_Session_Bundles
-	 * @since 1.0.0
 	 */
 	public static function instance() {
 		if ( null === self::$instance ) {
@@ -81,8 +73,6 @@ class GR8R_Woo_Session_Bundles {
 
 	/**
 	 * Prevent cloning of the instance
-	 *
-	 * @since 1.0.0
 	 */
 	public function __clone() {
 		// Prevent cloning.
@@ -90,8 +80,6 @@ class GR8R_Woo_Session_Bundles {
 
 	/**
 	 * Prevent unserializing of the instance
-	 *
-	 * @since 1.0.0
 	 */
 	public function __wakeup() {
 		// Prevent unserializing.
@@ -99,8 +87,6 @@ class GR8R_Woo_Session_Bundles {
 
 	/**
 	 * Initialize the plugin
-	 *
-	 * @since 1.0.0
 	 */
 	public function init() {
         // Load text domain.
@@ -128,8 +114,6 @@ class GR8R_Woo_Session_Bundles {
 
 	/**
 	 * Initialize hooks
-	 *
-	 * @since 1.0.0
 	 */
 	private function init_hooks() {
 		// Initialize admin and frontend.
@@ -141,8 +125,6 @@ class GR8R_Woo_Session_Bundles {
 
 	/**
 	 * WooCommerce missing notice
-	 *
-	 * @since 1.0.0
 	 */
 	public function woocommerce_missing_notice() {
 		echo '<div class="error"><p>' .
@@ -154,7 +136,6 @@ class GR8R_Woo_Session_Bundles {
 	 * Get admin instance
 	 *
 	 * @return GR8R_Woo_Session_Bundles_Admin|null
-	 * @since 1.0.0
 	 */
 	public function get_admin() {
 		return $this->admin;
@@ -164,7 +145,6 @@ class GR8R_Woo_Session_Bundles {
 	 * Get frontend instance
 	 *
 	 * @return GR8R_Woo_Session_Bundles_Frontend
-	 * @since 1.0.0
 	 */
 	public function get_frontend() {
 		return $this->frontend;
@@ -172,8 +152,6 @@ class GR8R_Woo_Session_Bundles {
 
 	/**
 	 * Plugin activation function
-	 *
-	 * @since 1.0.0
 	 */
 	public static function activate() {
 		// Check requirements.
@@ -196,8 +174,6 @@ class GR8R_Woo_Session_Bundles {
 
 	/**
 	 * Plugin deactivation function
-	 *
-	 * @since 1.0.0
 	 */
 	public static function deactivate() {
 		// Clean up if necessary.
@@ -206,8 +182,6 @@ class GR8R_Woo_Session_Bundles {
 
 	/**
 	 * Plugin uninstall function
-	 *
-	 * @since 1.0.0
 	 */
 	public static function uninstall() {
 		// Remove plugin data.
