@@ -346,7 +346,7 @@ class GR8R_Woo_Session_Bundles_Frontend {
 
 		foreach ( $bundled_products as $product_id => $quantity ) {
 			// TODO: Make it possible for other code to hook into this logic so we can generate other types of credits.
-			$this->generate_coupon_for_product( $product_id, $quantity, $order_item );
+			$this->generate_coupon_for_product_and_user( $product_id, $quantity, $order_item );
 		}
 	}
 
@@ -355,9 +355,10 @@ class GR8R_Woo_Session_Bundles_Frontend {
 	 *
 	 * @param int                   $product_id    The product ID.
 	 * @param int                   $quantity      The quantity of the product.
-	 * @param WC_Order_Item_Product $order_item The order item.
+	 * @param WC_Order_Item_Product $order_item    The order item.
+	 * @param int                   $user_id       The user ID the coupon should be assigned to.
 	 */
-	protected function generate_coupon_for_product( $product_id, $quantity, $order_item ): void {
+	protected function generate_coupon_for_product_and_user( $product_id, $quantity, $order_item, $user_id = null ): void {
 		$product = wc_get_product( $product_id );
 		if ( ! $product ) {
 			return;
@@ -368,17 +369,13 @@ class GR8R_Woo_Session_Bundles_Frontend {
 			return;
 		}
 
-		$coupon_root = 'gr8r_credit_' . $product_id . '_' . $order_item->get_id();
+		if ( null === $user_id ) {
+			$user_id = $order->get_customer_id();
+		}
 
-		/**
-		 * Filter the coupon root when generating a credit coupon.
-		 *
-		 * @param string                $coupon_root   The coupon root.
-		 * @param WC_Product            $product       The product.
-		 * @param WC_Order_Item_Product $order_item    The order item.
-		 */
-		$coupon_root = apply_filters( 'gr8r_woo_session_bundles_coupon_root', $coupon_root, $product, $order_item );
+		$coupon_prefix = $this->get_coupon_prefix( $product_id, $user_id );
 
+		$coupon_prefix .= '_' . $order_item->get_id();
 
 		$email       = null;
 		$customer_id = $order->get_customer_id();
@@ -392,12 +389,12 @@ class GR8R_Woo_Session_Bundles_Frontend {
 		}
 
 		for ( $i = 0; $i < $quantity; $i++ ) {
-			$coupon_code = $coupon_root . '_' . $i;
+			$coupon_code = $coupon_prefix . $i;
 
 			$count = 0;
 			while ( $count < 10 ) {
 				$count++;
-				$coupon_code = $coupon_root . '_' . $i . '_' . $count;
+				$coupon_code = $coupon_prefix . $count;
 				if ( ! $this->coupon_exists( $coupon_code ) ) {
 					break;
 				}
@@ -423,14 +420,34 @@ class GR8R_Woo_Session_Bundles_Frontend {
 				$coupon->set_email_restrictions( array( $email ) );
 
 				$save_result = $coupon->save();
-				gr8r_debug( [
-					'saving coupon' => true,
-					'coupon_code' => $coupon_code,
-					'save_result' => $save_result,
-					'coupon' => $coupon,
-				] );
 			}
 		}
+	}
+
+	/**
+	 * Get the prefix that should be used for coupons.
+	 *
+	 * @param int $product_id The product ID.
+	 * @param int $user_id    The user ID.
+	 * @return string The coupon prefix.
+	 */
+	protected function get_coupon_prefix( int $product_id, int $user_id ): string {
+		$coupon_prefix = 'gr8r_credit_' . $product_id . '_' . $user_id . '_';
+
+		/**
+		 * Generate a consistent, easily queried coupon prefix for a specific product and user.
+		 *
+		 * @param string                $coupon_prefix The coupon prefix.
+		 * @param WC_Product            $product       The product.
+		 * @param int                   $user_id       The user ID the coupon should be assigned to.
+		 */
+		$coupon_prefix = apply_filters( 'gr8r_woo_session_bundles_coupon_prefix', $coupon_prefix, $product_id, $user_id );
+
+		if ( str_ends_with( $coupon_prefix, '_' ) ) {
+			return $coupon_prefix;
+		}
+
+		return $coupon_prefix . '_';
 	}
 
 	/**
