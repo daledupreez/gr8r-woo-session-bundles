@@ -14,12 +14,24 @@
 	padding: 12px;
 }
 
+.dokan-form-group .gr8r-woo-session-bundles-bundled-session-list,
+.dokan-form-group .gr8r-woo-session-bundles-bundled-session-value,
+.dokan-form-group .gr8r-woo-session-bundles-add-bundled-session {
+	padding-left: 0;
+	padding-right: 0;
+}
+
 .gr8r-woo-session-bundles-bundled-session-list {
 	border-bottom: 1px solid #eee;
 }
 
 h3.gr8r-woo-session-bundles-bundled-session-list-title {
 	margin-top: 0;
+}
+
+.dokan-form-group .gr8r-woo-session-bundles-bundled-session-list-title {
+	font-weight: bold;
+	margin-bottom: 12px;
 }
 
 .gr8r-woo-session-bundles-bundled-session-list-table {

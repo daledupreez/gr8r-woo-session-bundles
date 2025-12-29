@@ -117,9 +117,10 @@ class GR8R_Woo_Session_Bundles {
 	 */
 	private function init_hooks() {
 		// Initialize admin and frontend.
-		if ( is_admin() ) {
+		if ( is_admin() || $this->is_dokan_product_edit_page() ) {
 			$this->admin = new GR8R_Woo_Session_Bundles_Admin();
 		}
+
 		$this->frontend = new GR8R_Woo_Session_Bundles_Frontend();
 	}
 
@@ -148,6 +149,27 @@ class GR8R_Woo_Session_Bundles {
 	 */
 	public function get_frontend() {
 		return $this->frontend;
+	}
+
+	public function is_dokan_product_edit_page() {
+		$context = [
+			'request_uri' => $_SERVER['REQUEST_URI'] ?? '(unknown)',
+			'is_admin'    => is_admin(),
+		];
+
+		$request_url = $_SERVER['REQUEST_URI'] ?? '';
+		if ( ! str_starts_with( $request_url, '/dashboard/products/' ) ) {
+			return false;
+		}
+		if ( 'edit' !== ( $_REQUEST['action'] ?? '' ) || ! ctype_digit( $_REQUEST['product_id'] ) ) {
+			return false;
+		}
+
+		if ( ! function_exists( 'dokan_is_seller_enabled' ) || ! dokan_is_seller_enabled( get_current_user_id() ) ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
