@@ -33,6 +33,11 @@
     border-bottom: none;
 }
 
+.gr8r-bundled-product-notice {
+	clear: both;
+	padding: 1em 0;
+}
+
 /* Session Bundle Loop Info */
 .session-bundle-loop-info {
     margin-top: 10px;

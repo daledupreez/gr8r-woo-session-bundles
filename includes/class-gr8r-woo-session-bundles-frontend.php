@@ -23,20 +23,27 @@ class GR8R_Woo_Session_Bundles_Frontend {
 	 * @since 1.0.0
 	 */
 	public function __construct() {
-		add_action( 'woocommerce_single_product_summary', array( $this, 'display_bundle_description' ), 25 );
+		if ( class_exists( 'Elementor\Plugin' ) ) {
+			add_filter( 'the_content', array( $this, 'add_bundle_description_to_content' ), 25, 1 );
+		} else {
+			add_action( 'woocommerce_single_product_summary', array( $this, 'display_bundle_description' ), 25 );
+		}
 		add_action( 'woocommerce_after_shop_loop_item_title', array( $this, 'display_bundle_description_loop' ), 15 );
 
 		//add_action( 'woocommerce_before_add_to_cart_button', array( $this, 'display_bundle_contents' ) );
+		add_action( 'woocommerce_after_add_to_cart_button', array( $this, 'render_available_coupon_details' ) );
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_frontend_scripts' ) );
 
 		add_action( 'woocommerce_new_order_item', array( $this, 'handle_new_order_item' ), 10, 2 );
 
-		// Order display
+		// Order display for bundle
 		add_filter( 'woocommerce_order_item_class', array( $this, 'add_bundle_order_item_class' ), 10, 2 );
 		add_action( 'woocommerce_order_item_meta_end', array( $this, 'render_order_item_bundle_details' ), 10, 4 );
 		add_action( 'woocommerce_after_order_itemmeta', array( $this, 'render_order_line_item_bundle' ), 10, 2 );
 
 		add_action( 'woocommerce_payment_complete', array( $this, 'handle_payment_complete' ), 10, 2 );
+
+		add_action( 'woocommerce_add_to_cart', array( $this, 'maybe_add_coupon_to_cart' ), 10, 2 );
 	}
 
 	/**
@@ -141,19 +148,48 @@ class GR8R_Woo_Session_Bundles_Frontend {
 	 * @since 1.0.0
 	 */
 	public function display_bundle_description() {
+		$bundle_description = $this->get_bundle_description();
+
+		if ( '' !== $bundle_description ) {
+			echo $bundle_description; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		}
+	}
+
+	/**
+	 * Get the bundle description HTML for a single product page.
+	 *
+	 * @return string
+	 */
+	public function get_bundle_description() {
 		global $product;
 
 		if ( ! $product || ! gr8r_session_bundles_is_bundle_product( $product->get_id() ) ) {
-			return;
+			return '';
 		}
 
 		$bundle_description = gr8r_session_bundles_get_product_bundle_description( $product->get_id() );
 
-		if ( ! empty( $bundle_description ) ) {
-			echo '<div class="gr8r-session-bundle-description">';
-			echo $bundle_description; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			echo '</div>';
+		if ( empty( $bundle_description ) ) {
+			return '';
 		}
+
+		return '<div class="gr8r-session-bundle-description">' . $bundle_description . '</div>';
+	}
+
+	/**
+	 * Add the bundle description to the content.
+	 *
+	 * @param string $content The content.
+	 * @return string The content with the bundle description added.
+	 */
+	public function add_bundle_description_to_content( string $content ): string {
+		$bundle_description = $this->get_bundle_description();
+
+		if ( '' === $bundle_description ) {
+			return $content;
+		}
+
+		return $bundle_description . $content;
 	}
 
 	/**
@@ -246,6 +282,121 @@ class GR8R_Woo_Session_Bundles_Frontend {
 		}
 	}
 
+	/**
+	 * Maybe add a coupon to the cart based on the product being added to the cart.
+	 *
+	 * @param string $cart_item_key The cart item key.
+	 * @param int    $product_id    The product ID being added to the cart.
+	 */
+	public function maybe_add_coupon_to_cart( $cart_item_key, $product_id ): void {
+		if ( ! $product_id ) {
+			return;
+		}
+
+		$user_id = get_current_user_id();
+		if ( 0 >= $user_id ) {
+			return;
+		}
+
+		$coupon_id = $this->get_next_available_coupon_id( $product_id, $user_id );
+		if ( null === $coupon_id ) {
+			return;
+		}
+
+		$coupon = new WC_Coupon( $coupon_id );
+
+		WC()->cart->apply_coupon( $coupon->get_code() );
+	}
+
+	/**
+	 * Render details about an available coupon in the product content.
+	 *
+	 * @return void
+	 */
+	public function render_available_coupon_details(): void {
+		global $product;
+
+		// If we have a product, or we have a bundled product, no need to check for coupons.
+		if ( ! $product || gr8r_session_bundles_is_bundle_product( $product->get_id() ) ) {
+			return;
+		}
+
+		// If we don't have a logged-in user, no need to check either.
+		$wp_user_id = get_current_user_id();
+		if ( $wp_user_id <= 0 ) {
+			return;
+		}
+
+		$coupon_id = $this->get_next_available_coupon_id( $product->get_id(), $wp_user_id );
+		if ( null === $coupon_id ) {
+			return;
+		}
+
+		$product_type = $product->get_type();
+		if ( 'booking' === $product_type ) {
+			$bundle_notice = __( 'You can book this session for free, as you already have a bundle.', 'gr8r-woo-session-bundles' );
+		} else {
+			$bundle_notice = __( 'You have a bundle that includes this product for free.', 'gr8r-woo-session-bundles' );
+		}
+
+		/**
+		 * Filter the text that we will show when a user has a bundle for that product. Note that the text will be HTML-escaped.
+		 *
+		 * @param string $notice_text  The text to show to the user.
+		 * @param string $product_type The product type so the text can be product-specific.
+		 * @param int    $product_id   The ID of the product.
+		 * @param int    $coupon_id    The ID of the first-expiring coupon.
+		 * @param int    $user_id      The current user ID.
+		 */
+		$bundle_notice = apply_filters( 'gr8r_bundled_product_notice', $bundle_notice, $product_type, $product->get_id(), $coupon_id, $wp_user_id );
+
+		echo '<div class="gr8r-bundled-product-notice">';
+		echo esc_html( $bundle_notice );
+		echo '</div>';
+	}
+
+	/**
+	 * Helper function to get the next available coupon ID for the specified product ID and user ID.
+	 *
+	 * @param int $product_id The product ID to find a coupon for.
+	 * @param int $user_id    The user ID to find a coupon for.
+	 * @return int|null The next available coupon ID, or null if no coupon is available.
+	 */
+	protected function get_next_available_coupon_id( int $product_id, int $user_id ): ?int {
+		global $wpdb;
+
+		$coupon_prefix = $this->get_coupon_prefix( $product_id, $user_id );
+
+		$query = $wpdb->prepare(
+			"SELECT post.ID
+			FROM
+				$wpdb->posts post
+				JOIN $wpdb->postmeta usage_meta
+				ON post.ID = usage_meta.post_id
+				JOIN $wpdb->postmeta expiry_meta
+				ON post.ID = expiry_meta.post_id
+			WHERE
+				post.post_type = 'shop_coupon'
+				AND post.post_title LIKE '%s'
+				AND usage_meta.meta_key = 'usage_count'
+				AND usage_meta.meta_value = '0'
+				AND expiry_meta.meta_key = 'date_expires'
+				AND expiry_meta.meta_value > '%d'
+			ORDER BY expiry_meta.meta_value ASC
+			LIMIT 1",
+			$wpdb->esc_like( $coupon_prefix ) . '%',
+			time()
+		);
+
+		$coupon_id = $wpdb->get_var( $query );
+
+		if ( null === $coupon_id || $coupon_id <= 0 ) {
+			return null;
+		}
+
+		return (int) $coupon_id;
+	}
+	
 	/**
 	 * Hook into the `woocommerce_new_order_item` action to save the bundle meta data in the newly created order item.
 	 *
