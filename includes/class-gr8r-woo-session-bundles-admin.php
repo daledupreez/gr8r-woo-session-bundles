@@ -520,8 +520,6 @@ class GR8R_Woo_Session_Bundles_Admin {
 			$exclude_ids = array_map( 'absint', (array) wp_unslash( $_GET['exclude_ids'] ) );
 		}
 
-		// TODO: Add a filter or logic to limit the results to the vendor for the current user. Maybe Dokan offers a vendor-specific search API?
-
 		if ( ! empty( $search_term ) ) {
 			$allowed_bundled_product_types = $this->get_allowed_bundled_product_types();
 
