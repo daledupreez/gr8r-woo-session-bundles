@@ -298,7 +298,7 @@ class GR8R_Woo_Session_Bundles_Frontend {
 			return;
 		}
 
-		$coupon_id = $this->get_next_available_coupon_id( $product_id, $user_id );
+		$coupon_id = GR8R_Woo_Session_Bundles_Coupon_Utils::get_instance()->get_next_available_coupon_id( $product_id, $user_id );
 		if ( null === $coupon_id ) {
 			return;
 		}
@@ -327,7 +327,7 @@ class GR8R_Woo_Session_Bundles_Frontend {
 			return;
 		}
 
-		$coupon_id = $this->get_next_available_coupon_id( $product->get_id(), $wp_user_id );
+		$coupon_id = GR8R_Woo_Session_Bundles_Coupon_Utils::get_instance()->get_next_available_coupon_id( $product->get_id(), $wp_user_id );
 		if ( null === $coupon_id ) {
 			return;
 		}
@@ -355,48 +355,6 @@ class GR8R_Woo_Session_Bundles_Frontend {
 		echo '</div>';
 	}
 
-	/**
-	 * Helper function to get the next available coupon ID for the specified product ID and user ID.
-	 *
-	 * @param int $product_id The product ID to find a coupon for.
-	 * @param int $user_id    The user ID to find a coupon for.
-	 * @return int|null The next available coupon ID, or null if no coupon is available.
-	 */
-	protected function get_next_available_coupon_id( int $product_id, int $user_id ): ?int {
-		global $wpdb;
-
-		$coupon_prefix = $this->get_coupon_prefix( $product_id, $user_id );
-
-		$query = $wpdb->prepare(
-			"SELECT post.ID
-			FROM
-				$wpdb->posts post
-				JOIN $wpdb->postmeta usage_meta
-				ON post.ID = usage_meta.post_id
-				JOIN $wpdb->postmeta expiry_meta
-				ON post.ID = expiry_meta.post_id
-			WHERE
-				post.post_type = 'shop_coupon'
-				AND post.post_title LIKE '%s'
-				AND usage_meta.meta_key = 'usage_count'
-				AND usage_meta.meta_value = '0'
-				AND expiry_meta.meta_key = 'date_expires'
-				AND expiry_meta.meta_value > '%d'
-			ORDER BY expiry_meta.meta_value ASC
-			LIMIT 1",
-			$wpdb->esc_like( $coupon_prefix ) . '%',
-			time()
-		);
-
-		$coupon_id = $wpdb->get_var( $query );
-
-		if ( null === $coupon_id || $coupon_id <= 0 ) {
-			return null;
-		}
-
-		return (int) $coupon_id;
-	}
-	
 	/**
 	 * Hook into the `woocommerce_new_order_item` action to save the bundle meta data in the newly created order item.
 	 *
@@ -489,127 +447,22 @@ class GR8R_Woo_Session_Bundles_Frontend {
 	 * @param WC_Order_Item_Product $order_item The order item.
 	 */
 	protected function generate_credits_for_order_item( $order_item ): void {
+		$purchased_product_id = $order_item->get_product_id();
+
 		$bundled_products = gr8r_session_bundles_get_order_item_bundle_meta( $order_item->get_id() );
 
 		if ( empty( $bundled_products ) ) {
 			return;
 		}
 
+		$purchased_product = wc_get_product( $purchased_product_id );
+		if ( ! $purchased_product ) {
+			return;
+		}
+
+		$coupon_utils = GR8R_Woo_Session_Bundles_Coupon_Utils::get_instance();
 		foreach ( $bundled_products as $product_id => $quantity ) {
-			// TODO: Make it possible for other code to hook into this logic so we can generate other types of credits.
-			$this->generate_coupon_for_product_and_user( $product_id, $quantity, $order_item );
+			$coupon_utils->generate_coupon_for_product_and_user( $product_id, $quantity, $order_item, $purchased_product );
 		}
-	}
-
-	/**
-	 * Generate a coupon for a product.
-	 *
-	 * @param int                   $product_id    The product ID.
-	 * @param int                   $quantity      The quantity of the product.
-	 * @param WC_Order_Item_Product $order_item    The order item.
-	 * @param int                   $user_id       The user ID the coupon should be assigned to.
-	 */
-	protected function generate_coupon_for_product_and_user( $product_id, $quantity, $order_item, $user_id = null ): void {
-		$product = wc_get_product( $product_id );
-		if ( ! $product ) {
-			return;
-		}
-
-		$order = $order_item->get_order();
-		if ( ! $order ) {
-			return;
-		}
-
-		if ( null === $user_id ) {
-			$user_id = $order->get_customer_id();
-		}
-
-		$coupon_prefix = $this->get_coupon_prefix( $product_id, $user_id );
-
-		$coupon_prefix .= '_' . $order_item->get_id();
-
-		$email       = null;
-		$customer_id = $order->get_customer_id();
-		if ( $customer_id ) {
-			$customer = new WC_Customer( $customer_id );
-			$email = $customer->get_email();
-		}
-
-		if ( empty( $email ) ) {
-			$email = $order->get_billing_email();
-		}
-
-		for ( $i = 0; $i < $quantity; $i++ ) {
-			$coupon_code = $coupon_prefix . $i;
-
-			$count = 0;
-			while ( $count < 10 ) {
-				$count++;
-				$coupon_code = $coupon_prefix . $count;
-				if ( ! $this->coupon_exists( $coupon_code ) ) {
-					break;
-				}
-
-				if ( $count === 10 ) {
-					$coupon_code = null;
-				}
-			}
-
-			// TODO: Handle the case where we could not generate a valid coupon code.
-
-			if ( null !== $coupon_code ) {
-				$expiry_date = new DateTime( '+1 month', new DateTimeZone( 'UTC' ) );
-
-				$coupon = new WC_Coupon( $coupon_code );
-				$coupon->set_discount_type( 'percent' );
-				$coupon->set_amount( 100 );
-				$coupon->set_product_ids( array( $product_id ) );
-				$coupon->set_usage_limit( 1 );
-				$coupon->set_usage_limit_per_user( 1 );
-				$coupon->set_limit_usage_to_x_items( 1 );
-				$coupon->set_date_expires( $expiry_date->getTimestamp() );
-				$coupon->set_email_restrictions( array( $email ) );
-
-				$save_result = $coupon->save();
-			}
-		}
-	}
-
-	/**
-	 * Get the prefix that should be used for coupons.
-	 *
-	 * @param int $product_id The product ID.
-	 * @param int $user_id    The user ID.
-	 * @return string The coupon prefix.
-	 */
-	protected function get_coupon_prefix( int $product_id, int $user_id ): string {
-		$coupon_prefix = 'gr8r_credit_' . $product_id . '_' . $user_id . '_';
-
-		/**
-		 * Generate a consistent, easily queried coupon prefix for a specific product and user.
-		 *
-		 * @param string                $coupon_prefix The coupon prefix.
-		 * @param WC_Product            $product       The product.
-		 * @param int                   $user_id       The user ID the coupon should be assigned to.
-		 */
-		$coupon_prefix = apply_filters( 'gr8r_woo_session_bundles_coupon_prefix', $coupon_prefix, $product_id, $user_id );
-
-		if ( str_ends_with( $coupon_prefix, '_' ) ) {
-			return $coupon_prefix;
-		}
-
-		return $coupon_prefix . '_';
-	}
-
-	/**
-	 * Check if a coupon exists.
-	 *
-	 * @param string $coupon_code The coupon code.
-	 * @return bool True if the coupon exists, false otherwise.
-	 */
-	protected function coupon_exists( string $coupon_code ): bool {
-		$coupon = new WC_Coupon( $coupon_code );
-
-		return (bool) $coupon->get_id() || $coupon->get_virtual();
 	}
 }
