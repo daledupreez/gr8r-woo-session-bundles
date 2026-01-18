@@ -46,7 +46,7 @@ class GR8R_Woo_Session_Bundles_Coupon_Utils {
 		if ( 0 >= $product_id || 0 >= $user_id ) {
 			return null;
 	   	}
-   
+
 	   $valid_coupon_ids = get_posts(
 		   array(
 			   'post_type'      => 'shop_coupon',
@@ -134,6 +134,8 @@ class GR8R_Woo_Session_Bundles_Coupon_Utils {
 		if ( 'subscription' !== $purchased_product->get_type() ) {
 			$coupon_expiry_time = '+3 months';
 		} else {
+			$coupon_expiry_time = null;
+
 			$subscription_orders = wc_get_orders(
 				[
 					'customer'     => $customer_id ? $customer_id : $email,
@@ -146,7 +148,7 @@ class GR8R_Woo_Session_Bundles_Coupon_Utils {
 					'order'        => 'DESC',
 				]
 			);
-			$coupon_expiry_time = null;
+
 			if ( ! empty( $subscription_orders ) ) {
 				$subscription_order = reset( $subscription_orders );
 				if ( class_exists( 'WC_Subscription' ) && $subscription_order instanceof WC_Subscription ) {
@@ -179,9 +181,26 @@ class GR8R_Woo_Session_Bundles_Coupon_Utils {
 		$coupon_expiry_time = apply_filters( 'gr8r_woo_session_bundles_coupon_expiry_time', $coupon_expiry_time, $purchased_product, $product_id, $quantity, $user_id );
 
 		// Create new timestamp using the expiration time, reset to midnight on that day, and then add one day.
-		$coupon_expiry_date = new WC_DateTime( $coupon_expiry_time );
-		$coupon_expiry_date->setTime( 0, 0, 0, 0 );
-		$coupon_expiry_date->add( new DateInterval( 'P1D' ) );
+		$coupon_expiry_datetime = new WC_DateTime( $coupon_expiry_time );
+		$coupon_expiry_datetime->setTime( 0, 0, 0, 0 );
+		$coupon_expiry_datetime->add( new DateInterval( 'P1D' ) );
+
+		/**
+		 * Allow developers to override the coupon generation process. If the filter returns true,
+		 * the standard coupon will NOT be generated.
+		 *
+		 * @param bool                  $coupon_generated       Whether the coupon was generated. Defaults to false.
+		 * @param int                   $product_id             The bundled product ID.
+		 * @param int                   $quantity               The quantity of the bundled product.
+		 * @param WC_Order_Item_Product $order_item             The order item.
+		 * @param WC_Product            $purchased_product      The purchased product that is causing us to generate a coupon/credits.
+		 * @param int                   $user_id                The user ID to generate the coupon/credits for.
+		 * @param WC_DateTime           $coupon_expiry_datetime The expiration timestamp.
+		 */
+		$coupon_generated = apply_filters( 'gr8r_woo_session_bundles_generate_coupon_for_product_and_user', false, $product_id, $quantity, $order_item, $purchased_product, $user_id, $coupon_expiry_datetime );
+		if ( true === $coupon_generated ) {
+			return;
+		}
 
 		$coupon_created_time = new WC_DateTime();
 

@@ -298,6 +298,19 @@ class GR8R_Woo_Session_Bundles_Frontend {
 			return;
 		}
 
+		/**
+		 * Make it possible to use an alternative mechanism to apply credits to the cart when adding an eligible product.
+		 *
+		 * @param bool   $apply_credits Whether to apply credits to the cart. Defaults to true.
+		 * @param int    $product_id    The product ID being added to the cart.
+		 * @param string $cart_item_key The cart item key.
+		 * @param int    $user_id       The user ID of the purchaser.
+		 */
+		$apply_credits = apply_filters( 'gr8r_woo_session_bundles_apply_credits_to_cart', true, $product_id, $cart_item_key, $user_id );
+		if ( false === $apply_credits ) {
+			return;
+		}
+
 		$coupon_id = GR8R_Woo_Session_Bundles_Coupon_Utils::get_instance()->get_next_available_coupon_id( $product_id, $user_id );
 		if ( null === $coupon_id ) {
 			return;
