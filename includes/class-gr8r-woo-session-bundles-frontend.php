@@ -12,15 +12,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Session Bundle Frontend Class
- *
- * @since 1.0.0
  */
 class GR8R_Woo_Session_Bundles_Frontend {
 
 	/**
 	 * Constructor
-	 *
-	 * @since 1.0.0
 	 */
 	public function __construct() {
 		if ( class_exists( 'Elementor\Plugin' ) ) {
@@ -78,7 +74,6 @@ class GR8R_Woo_Session_Bundles_Frontend {
 	 * @param WC_Order_Item_Product $item Order item product.
 	 * @param WC_Order $order Order object.
 	 * @return string
-	 * @since 1.0.0
 	 */
 	public function add_bundle_order_item_class( $class, $item ) {
 		if ( gr8r_session_bundles_is_bundle_order_item( $item ) ) {
@@ -144,8 +139,6 @@ class GR8R_Woo_Session_Bundles_Frontend {
 
 	/**
 	 * Display bundle description on single product page.
-	 *
-	 * @since 1.0.0
 	 */
 	public function display_bundle_description() {
 		$bundle_description = $this->get_bundle_description();
@@ -194,8 +187,6 @@ class GR8R_Woo_Session_Bundles_Frontend {
 
 	/**
 	 * Display bundle description in product loop
-	 *
-	 * @since 1.0.0
 	 */
 	public function display_bundle_description_loop() {
 		global $product;
@@ -226,8 +217,6 @@ class GR8R_Woo_Session_Bundles_Frontend {
 
 	/**
 	 * Display bundle contents before add to cart button
-	 *
-	 * @since 1.0.0
 	 */
 	public function display_bundle_contents() {
 		global $product;
@@ -260,8 +249,6 @@ class GR8R_Woo_Session_Bundles_Frontend {
 
 	/**
 	 * Enqueue frontend scripts
-	 *
-	 * @since 1.0.0
 	 */
 	public function enqueue_frontend_scripts() {
 		if ( is_product() || is_shop() || is_product_category() ) {
@@ -373,7 +360,6 @@ class GR8R_Woo_Session_Bundles_Frontend {
 	 *
 	 * @param int                   $order_item_id The order item ID.
 	 * @param WC_Order_Item_Product $order_item    The order item product.
-	 * @since 1.0.0
 	 */
 	public function handle_new_order_item( $order_item_id, $order_item ) {
 		if ( ! $order_item || ! $order_item instanceof WC_Order_Item_Product ) {
@@ -399,7 +385,6 @@ class GR8R_Woo_Session_Bundles_Frontend {
 	 *
 	 * @param int $product_id Product ID.
 	 * @return string
-	 * @since 1.0.0
 	 */
 	public static function get_bundle_summary( $product_id ) {
 		$product = wc_get_product( $product_id );

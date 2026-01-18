@@ -3,7 +3,6 @@
  * Session Bundle Admin Class
  *
  * @package Gr8r_Woo_Session_Bundles
- * @since 1.0.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -12,8 +11,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Session Bundle Admin Class
- *
- * @since 1.0.0
  */
 class GR8R_Woo_Session_Bundles_Admin {
 
@@ -21,8 +18,6 @@ class GR8R_Woo_Session_Bundles_Admin {
 
 	/**
 	 * Constructor
-	 *
-	 * @since 1.0.0
 	 */
 	public function __construct() {
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
@@ -49,8 +44,6 @@ class GR8R_Woo_Session_Bundles_Admin {
 
 	/**
 	 * Add Session Bundle options to general product data
-	 *
-	 * @since 1.0.0
 	 */
 	public function add_session_bundle_options() {
 		global $post;
@@ -152,7 +145,6 @@ class GR8R_Woo_Session_Bundles_Admin {
 	 * Enqueue admin scripts.
 	 *
 	 * @param string $hook Current admin page.
-	 * @since 1.0.0
 	 */
 	public function enqueue_admin_scripts( $hook ) {
 		global $post_type;
@@ -274,7 +266,6 @@ class GR8R_Woo_Session_Bundles_Admin {
 		 * Filter the supported product types for session bundles. Defaults to simple and subscription products.
 		 *
 		 * @param string[] $supported_product_types The supported product types.
-		 * @since 1.0.0
 		 */
 		return apply_filters( 'gr8r_woo_session_bundles_supported_product_types', $default_product_types );
 	}
@@ -487,8 +478,6 @@ class GR8R_Woo_Session_Bundles_Admin {
 
 	/**
 	 * AJAX handler for searching products
-	 *
-	 * @since 1.0.0
 	 */
 	public function ajax_search_products() {
 		// Check nonce.
@@ -568,8 +557,6 @@ class GR8R_Woo_Session_Bundles_Admin {
 
 	/**
 	 * AJAX handler for getting bundle summary
-	 *
-	 * @since 1.0.0
 	 */
 	public function ajax_get_bundle_summary() {
 		// Check nonce and permissions.
@@ -590,8 +577,6 @@ class GR8R_Woo_Session_Bundles_Admin {
 
 	/**
 	 * AJAX handler for checking stock
-	 *
-	 * @since 1.0.0
 	 */
 	public function ajax_check_stock() {
 		// Check nonce and permissions.
@@ -617,8 +602,6 @@ class GR8R_Woo_Session_Bundles_Admin {
 
 	/**
 	 * AJAX handler for getting product data
-	 *
-	 * @since 1.0.0
 	 */
 	public function ajax_get_product_data() {
 		// Check nonce and permissions.
