@@ -3,7 +3,7 @@
  * Plugin Name: GR8R Session Bundles for WooCommerce
  * Plugin URI: https://github.com/daledupreez/gr8r-woo-session-bundles
  * Description: Adds session bundling to WooCommerce.
- * Version: 0.1.4
+ * Version: 0.2.0
  * Author: GR8R Than Fitness
  * Author URI: https://gr8r.fit
  * Text Domain: gr8r-woo-session-bundles
@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants.
-define( 'GR8R_WOO_SESSION_BUNDLE_VERSION', '0.1.4' );
+define( 'GR8R_WOO_SESSION_BUNDLE_VERSION', '0.2.0' );
 define( 'GR8R_WOO_SESSION_BUNDLE_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'GR8R_WOO_SESSION_BUNDLE_PLUGIN_PATH', plugin_dir_path( __FILE__ ) );
 
