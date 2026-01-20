@@ -50,7 +50,7 @@ class GR8R_Woo_Session_Bundles_Admin {
 
 		$product = wc_get_product( $post->ID );
 
-		if ( ! $product || ! in_array( $product->get_type(), $this->get_supported_product_types(), true ) ) {
+		if ( ! $product || ! in_array( $product->get_type(), GR8R_Woo_Session_Bundles_Configuration::get_instance()->get_supported_product_types(), true ) ) {
 			return;
 		}
 
@@ -220,7 +220,7 @@ class GR8R_Woo_Session_Bundles_Admin {
 				'ajax_url'                => admin_url( 'admin-ajax.php' ),
 				'nonce'                   => wp_create_nonce( 'gr8r_woo_session_bundles_admin_nonce' ),
 				'bundled_product_details' => $bundled_product_details,
-				'product_types'           => $this->get_supported_product_types(),
+				'product_types'           => GR8R_Woo_Session_Bundles_Configuration::get_instance()->get_supported_product_types(),
 				'strings'                 => array(
 					'select_products' => __( 'Search for products...', 'gr8r-woo-session-bundles' ),
 					'remove_product'  => __( 'Remove', 'gr8r-woo-session-bundles' ),
@@ -255,38 +255,6 @@ class GR8R_Woo_Session_Bundles_Admin {
 	}
 
 	/**
-	 * Get the supported product types for session bundles.
-	 *
-	 * @return string[] The supported product types.
-	 */
-	public function get_supported_product_types(): array {
-		$default_product_types = array( 'simple', 'subscription' );
-
-		/**
-		 * Filter the supported product types for session bundles. Defaults to simple and subscription products.
-		 *
-		 * @param string[] $supported_product_types The supported product types.
-		 */
-		return apply_filters( 'gr8r_woo_session_bundles_supported_product_types', $default_product_types );
-	}
-
-	/**
-	 * Get the allowed bundled product types for session bundles.
-	 *
-	 * @return string[] The allowed bundled product types.
-	 */
-	public function get_allowed_bundled_product_types(): array {
-		$default_product_types = array( 'booking' );
-
-		/**
-		 * Filter the allowed bundled product types for session bundles. Defaults to booking products.
-		 *
-		 * @param string[] $allowed_bundled_product_types The allowed bundled product types.
-		 */
-		return apply_filters( 'gr8r_woo_session_bundles_allowed_bundled_product_types', $default_product_types );
-	}
-
-	/**
 	 * Add Session Bundle checkbox to simple and subscription products.
 	 */
 	public function add_session_bundle_toggle( array $options ) {
@@ -301,7 +269,7 @@ class GR8R_Woo_Session_Bundles_Admin {
 	}
 
 	protected function get_show_if_wrapper_class(): string {
-		$supported_product_types = $this->get_supported_product_types();
+		$supported_product_types = GR8R_Woo_Session_Bundles_Configuration::get_instance()->get_supported_product_types();
 
 		return implode(
 			' ',
@@ -373,7 +341,7 @@ class GR8R_Woo_Session_Bundles_Admin {
 			return;
 		}
 
-		$supported_product_types = $this->get_supported_product_types();
+		$supported_product_types = GR8R_Woo_Session_Bundles_Configuration::get_instance()->get_supported_product_types();
 
 		if ( ! in_array( $product->get_type(), $supported_product_types, true ) ) {
 			return;
@@ -510,7 +478,7 @@ class GR8R_Woo_Session_Bundles_Admin {
 		}
 
 		if ( ! empty( $search_term ) ) {
-			$allowed_bundled_product_types = $this->get_allowed_bundled_product_types();
+			$allowed_bundled_product_types = GR8R_Woo_Session_Bundles_Configuration::get_instance()->get_allowed_bundled_product_types();
 
 			if ( ! empty( $allowed_bundled_product_types ) ) {
 				if ( $dokan_vendor_id ) {

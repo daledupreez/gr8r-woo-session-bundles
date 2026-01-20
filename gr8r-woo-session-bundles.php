@@ -103,6 +103,7 @@ class GR8R_Woo_Session_Bundles {
 		// Include required files.
 		require_once GR8R_WOO_SESSION_BUNDLE_PLUGIN_PATH . 'includes/gr8r-woo-session-bundles-product-utils.php';
 		require_once GR8R_WOO_SESSION_BUNDLE_PLUGIN_PATH . 'includes/gr8r-woo-session-bundles-order-utils.php';
+		require_once GR8R_WOO_SESSION_BUNDLE_PLUGIN_PATH . 'includes/class-gr8r-woo-session-bundles-configuration.php';
 		require_once GR8R_WOO_SESSION_BUNDLE_PLUGIN_PATH . 'includes/class-gr8r-woo-session-bundles-admin.php';
 		require_once GR8R_WOO_SESSION_BUNDLE_PLUGIN_PATH . 'includes/class-gr8r-woo-session-bundles-frontend.php';
 		require_once GR8R_WOO_SESSION_BUNDLE_PLUGIN_PATH . 'includes/class-gr8r-woo-session-bundles-coupon-utils.php';
