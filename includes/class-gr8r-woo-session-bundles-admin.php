@@ -177,6 +177,8 @@ class GR8R_Woo_Session_Bundles_Admin {
 	public function hide_order_item_bundle_meta( array $hidden_order_itemmeta ): array {
 		$hidden_order_itemmeta[] = '_gr8r_is_bundle';
 		$hidden_order_itemmeta[] = '_gr8r_bundled_products';
+		$hidden_order_itemmeta[] = '_gr8r_bundle_validity_count';
+		$hidden_order_itemmeta[] = '_gr8r_bundle_validity_period';
 		return $hidden_order_itemmeta;
 	}
 
