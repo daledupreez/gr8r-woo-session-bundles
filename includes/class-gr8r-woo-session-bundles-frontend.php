@@ -229,7 +229,10 @@ class GR8R_Woo_Session_Bundles_Frontend {
 	}
 
 	/**
-	 * Display bundle contents before add to cart button
+	 * Display bundle contents before the add to cart button.
+	 *
+	 * Shows a summary list of all products included in the bundle.
+	 * Currently commented out in the constructor but available for use.
 	 */
 	public function display_bundle_contents() {
 		global $product;

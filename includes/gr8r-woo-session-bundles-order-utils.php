@@ -8,6 +8,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Save session bundle meta for an order item.
+ *
+ * @param int        $order_item_id       The order item ID.
+ * @param array|null $session_bundle_data The session bundle data (product_id => quantity). Null or empty to delete.
+ */
 function gr8r_session_bundles_save_order_item_bundle_meta( $order_item_id, ?array $session_bundle_data ): void {
 	if ( ! $order_item_id ) {
 		return;
@@ -26,6 +32,12 @@ function gr8r_session_bundles_save_order_item_bundle_meta( $order_item_id, ?arra
 	wc_update_order_item_meta( $order_item_id, '_gr8r_bundled_products', json_encode( $sanitized_data ), true );
 }
 
+/**
+ * Get session bundle meta for an order item.
+ *
+ * @param int $order_item_id The order item ID.
+ * @return array<int, int> The session bundle data as product_id => quantity pairs.
+ */
 function gr8r_session_bundles_get_order_item_bundle_meta( $order_item_id ): array {
 	$stored_meta = wc_get_order_item_meta( $order_item_id, '_gr8r_bundled_products', true );
 
@@ -42,6 +54,12 @@ function gr8r_session_bundles_get_order_item_bundle_meta( $order_item_id ): arra
 	return gr8r_session_bundles_sanitize_bundle_data( $decoded_meta );
 }
 
+/**
+ * Check if an order item is a session bundle order item.
+ *
+ * @param WC_Order_Item|mixed $item The order item to check.
+ * @return bool True if the item is a bundle order item, false otherwise.
+ */
 function gr8r_session_bundles_is_bundle_order_item( $item ): bool {
 	if ( ! $item || ! $item instanceof WC_Order_Item_Product ) {
 		return false;
@@ -50,6 +68,12 @@ function gr8r_session_bundles_is_bundle_order_item( $item ): bool {
 	return 'yes' === wc_get_order_item_meta( $item->get_id(), '_gr8r_is_bundle', true );
 }
 
+/**
+ * Save the is_bundle meta flag for an order item.
+ *
+ * @param int  $order_item_id     The order item ID.
+ * @param bool $is_session_bundle True if the order item is a session bundle, false otherwise.
+ */
 function gr8r_session_bundles_save_order_item_is_bundle_meta( $order_item_id, bool $is_session_bundle ): void {
 	if ( $is_session_bundle ) {
 		wc_update_order_item_meta( $order_item_id, '_gr8r_is_bundle', 'yes', true );
@@ -58,6 +82,12 @@ function gr8r_session_bundles_save_order_item_is_bundle_meta( $order_item_id, bo
 	}
 }
 
+/**
+ * Get the bundle validity meta for an order item.
+ *
+ * @param int $order_item_id The order item ID.
+ * @return array{count: int|null, period: string|null} The validity period data.
+ */
 function gr8r_session_bundles_get_order_item_bundle_validity( $order_item_id ): array {
 	$validity_meta = array(
 		'count'  => wc_get_order_item_meta( $order_item_id, '_gr8r_bundle_validity_count', true ),
@@ -67,6 +97,13 @@ function gr8r_session_bundles_get_order_item_bundle_validity( $order_item_id ): 
 	return gr8r_session_bundles_normalize_validity_meta( $validity_meta );
 }
 
+/**
+ * Save the bundle validity meta for an order item.
+ *
+ * @param int         $order_item_id   The order item ID.
+ * @param int|null    $validity_count  The validity period count. Null to delete.
+ * @param string|null $validity_period The validity period ('week', 'month', 'year'). Null to delete.
+ */
 function gr8r_session_bundles_save_order_item_bundle_validity_meta( $order_item_id, ?int $validity_count, ?string $validity_period ): void {
 	if ( null === $validity_count || null === $validity_period ) {
 		wc_delete_order_item_meta( $order_item_id, '_gr8r_bundle_validity_count' );

@@ -143,6 +143,14 @@ function gr8r_session_bundles_save_product_validity_period_meta( $product_id, ?i
 	update_post_meta( $product_id, '_gr8r_valid_period', $valid_period );
 }
 
+/**
+ * Normalize validity meta to ensure consistent structure.
+ *
+ * Validates that the period is in the allowed list and count is a positive integer.
+ *
+ * @param array $validity_meta The validity meta array to normalize.
+ * @return array{count: int|null, period: string|null} The normalized validity meta.
+ */
 function gr8r_session_bundles_normalize_validity_meta( array $validity_meta ): array {
 	$normalized_validity_meta = array(
 		'count'  => null,
@@ -163,6 +171,12 @@ function gr8r_session_bundles_normalize_validity_meta( array $validity_meta ): a
 	return $normalized_validity_meta;
 }
 
+/**
+ * Get a human-readable description of the bundle validity period.
+ *
+ * @param array{count: int|null, period: string|null} $bundle_validity The bundle validity data.
+ * @return string The human-readable validity description (e.g., "3 months").
+ */
 function gr8r_session_bundles_get_bundle_validity_description( array $bundle_validity ): string {
 	$validity_periods = GR8R_Woo_Session_Bundles_Configuration::get_instance()->get_validity_periods();
 	if ( isset( $validity_periods[ $bundle_validity['period'] ] ) ) {

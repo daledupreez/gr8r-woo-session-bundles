@@ -14,6 +14,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class GR8R_Woo_Session_Bundles_Admin {
 
+	/**
+	 * Tracks which actions have been performed to prevent duplicate execution.
+	 *
+	 * @var array<string, bool|array<string, bool>>
+	 */
 	private static $actions = [];
 
 	/**
@@ -302,6 +307,11 @@ class GR8R_Woo_Session_Bundles_Admin {
 		return $options;
 	}
 
+	/**
+	 * Get the CSS wrapper classes for showing elements based on product type.
+	 *
+	 * @return string Space-separated CSS classes (e.g., "show_if_simple show_if_subscription").
+	 */
 	protected function get_show_if_wrapper_class(): string {
 		$supported_product_types = GR8R_Woo_Session_Bundles_Configuration::get_instance()->get_supported_product_types();
 
@@ -454,11 +464,11 @@ class GR8R_Woo_Session_Bundles_Admin {
 	}
 
 	/**
-	 * Helper function to get the fields to save for the bundled session meta.
+	 * Extract and clean the fields needed for saving session bundle meta.
 	 *
-	 * @param array $post_data      The POSTed data.
-	 * @param bool  $should_unslash Whether to unslash the data.
-	 * @return array The fields to save.
+	 * @param array $post_data      The POSTed data array.
+	 * @param bool  $should_unslash Whether to unslash the data. Default true.
+	 * @return array<string, string> The cleaned fields ready for processing.
 	 */
 	protected function get_save_fields( $post_data, bool $should_unslash = true ) {
 		$fields = array(
@@ -483,6 +493,12 @@ class GR8R_Woo_Session_Bundles_Admin {
 		return $cleaned_fields;
 	}
 
+	/**
+	 * Mark an action as done to prevent duplicate execution.
+	 *
+	 * @param string   $action  The action identifier.
+	 * @param int|null $post_id Optional post ID for post-specific action tracking.
+	 */
 	protected function mark_action_done( string $action, $post_id = null) {
 		if ( ! $post_id ) {
 			self::$actions[ $action ] = true;
@@ -497,6 +513,13 @@ class GR8R_Woo_Session_Bundles_Admin {
 		self::$actions[ $action ][ $post_key ] = true;
 	}
 
+	/**
+	 * Check if an action has already been performed.
+	 *
+	 * @param string   $action  The action identifier.
+	 * @param int|null $post_id Optional post ID for post-specific action checking.
+	 * @return bool True if the action has been done, false otherwise.
+	 */
 	protected function is_action_done( string $action, $post_id = null ): bool {
 		if ( ! isset( self::$actions[ $action ] ) ) {
 			return false;
@@ -576,7 +599,11 @@ class GR8R_Woo_Session_Bundles_Admin {
 	}
 
 	/**
-	 * Helper function to build consistent product details.
+	 * Build a consistent product details array for use in the admin UI.
+	 *
+	 * @param WC_Product $product The product to get details for.
+	 * @param string     $context The context ('admin' or 'dokan'). Default 'admin'.
+	 * @return array{id: int, name: string, price: string, priceHTML: string, url: string, edit_url: string} The product details.
 	 */
 	protected function get_product_details( $product, string $context = 'admin' ): array {
 		$edit_url = $context === 'dokan' && function_exists( 'dokan_edit_product_url' ) ? dokan_edit_product_url( $product ) : get_edit_post_link( $product->get_id() );

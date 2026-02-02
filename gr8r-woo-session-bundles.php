@@ -151,6 +151,11 @@ class GR8R_Woo_Session_Bundles {
 		return $this->frontend;
 	}
 
+	/**
+	 * Check if the current page is the Dokan product edit page.
+	 *
+	 * @return bool True if we are on a Dokan product edit page, false otherwise.
+	 */
 	public function is_dokan_product_edit_page() {
 		$context = [
 			'request_uri' => $_SERVER['REQUEST_URI'] ?? '(unknown)',
