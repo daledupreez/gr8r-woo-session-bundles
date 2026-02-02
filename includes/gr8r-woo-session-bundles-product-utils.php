@@ -108,7 +108,108 @@ function gr8r_session_bundles_get_product_bundle_description( $product_id ): str
 		return '';
 	}
 
-	return gr8r_session_bundles_get_bundle_description( $bundled_products );
+	return gr8r_session_bundles_get_bundle_description( $bundled_products, array(), gr8r_session_bundles_get_product_bundle_validity_meta( $product_id ) );
+}
+
+/**
+ * Save validity period meta for a specified product.
+ *
+ * @param int         $product_id         The product ID.
+ * @param int|null    $valid_period_count The validity period count. Null to delete.
+ * @param string|null $valid_period       The validity period ('week', 'month', 'year'). Null to delete.
+ */
+function gr8r_session_bundles_save_product_validity_period_meta( $product_id, ?int $valid_period_count, ?string $valid_period ): void {
+	if ( ! $product_id ) {
+		return;
+	}
+
+	if ( null === $valid_period_count || null === $valid_period ) {
+		delete_post_meta( $product_id, '_gr8r_valid_period_count' );
+		delete_post_meta( $product_id, '_gr8r_valid_period' );
+		return;
+	}
+
+	$allowed_periods = GR8R_Woo_Session_Bundles_Configuration::get_instance()->get_supported_validity_periods();
+	if ( ! in_array( $valid_period, $allowed_periods, true ) ) {
+		return;
+	}
+
+	// Validate count
+	if ( $valid_period_count <= 0 ) {
+		return;
+	}
+
+	update_post_meta( $product_id, '_gr8r_valid_period_count', $valid_period_count );
+	update_post_meta( $product_id, '_gr8r_valid_period', $valid_period );
+}
+
+function gr8r_session_bundles_normalize_validity_meta( array $validity_meta ): array {
+	$normalized_validity_meta = array(
+		'count'  => null,
+		'period' => null,
+	);
+
+	if ( isset( $validity_meta['period'] ) ) {
+		$allowed_periods = GR8R_Woo_Session_Bundles_Configuration::get_instance()->get_supported_validity_periods();
+		if ( in_array( $validity_meta['period'], $allowed_periods, true ) ) {
+			$normalized_validity_meta['period'] = $validity_meta['period'];
+		}
+	}
+
+	if ( ! empty( $validity_meta['count'] ) && is_numeric( $validity_meta['count'] ) && (int) $validity_meta['count'] > 0 ) {
+		$normalized_validity_meta['count'] = (int) $validity_meta['count'];
+	}
+
+	return $normalized_validity_meta;
+}
+
+function gr8r_session_bundles_get_bundle_validity_description( array $bundle_validity ): string {
+	$validity_periods = GR8R_Woo_Session_Bundles_Configuration::get_instance()->get_validity_periods();
+	if ( isset( $validity_periods[ $bundle_validity['period'] ] ) ) {
+		$configuration = $validity_periods[ $bundle_validity['period'] ];
+		if ( isset( $configuration['plural'] ) && is_callable( $configuration['plural'] ) ) {
+			return $configuration['plural']( $bundle_validity['count'] );
+		}
+	}
+
+	return $bundle_validity['count'] . ' ' . $bundle_validity['period'] . ( $bundle_validity['count'] > 1 ? 's' : '' );
+}
+
+/**
+ * Get validity period meta for a specified product.
+ *
+ * @param int $product_id The product ID.
+ * @return array{count: int|null, period: string|null} The validity period data.
+ */
+function gr8r_session_bundles_get_product_bundle_validity_meta( $product_id ): array {
+	$validity_meta = array(
+		'count'  => get_post_meta( $product_id, '_gr8r_valid_period_count', true ),
+		'period' => get_post_meta( $product_id, '_gr8r_valid_period', true ),
+	);
+
+	return gr8r_session_bundles_normalize_validity_meta( $validity_meta );
+}
+
+/**
+ * Get validity period count for a specified product.
+ *
+ * @param int $product_id The product ID.
+ * @return int|null The validity period count, or null if not set.
+ */
+function gr8r_session_bundles_get_product_validity_period_count( $product_id ): ?int {
+	$meta = gr8r_session_bundles_get_product_bundle_validity_meta( $product_id );
+	return $meta['count'];
+}
+
+/**
+ * Get validity period for a specified product.
+ *
+ * @param int $product_id The product ID.
+ * @return string|null The validity period ('week', 'month', 'year'), or null if not set.
+ */
+function gr8r_session_bundles_get_product_validity_period( $product_id ): ?string {
+	$meta = gr8r_session_bundles_get_product_bundle_validity_meta( $product_id );
+	return $meta['period'];
 }
 
 /**
@@ -120,9 +221,13 @@ function gr8r_session_bundles_get_product_bundle_description( $product_id ): str
  *     @type string $header_element The element to use for the header. Default 'h4'.
  *     @type string $wrapper_class  The class to use for the wrapper div. Default 'gr8r-session-bundle-contents'.
  * }
+ * @param array $bundle_validity {
+ *     @type int|null    $count  The validity period count.
+ *     @type string|null $period The validity period ('week', 'month', 'year').
+ * }
  * @return string The HTML description for the bundle.
  */
-function gr8r_session_bundles_get_bundle_description( array $bundled_products, $options = array() ): string {
+function gr8r_session_bundles_get_bundle_description( array $bundled_products, array $options = array(), array $bundle_validity = array() ): string {
 	$defaults = array(
 		'skip_header'    => false,
 		'header_element' => 'h4',
@@ -151,6 +256,14 @@ function gr8r_session_bundles_get_bundle_description( array $bundled_products, $
 	}
 
 	$description .= '</ul>';
+
+	if ( isset( $bundle_validity['count'] ) && isset( $bundle_validity['period'] ) && null !== $bundle_validity['count'] && null !== $bundle_validity['period'] ) {
+		$validity_expression = gr8r_session_bundles_get_bundle_validity_description( $bundle_validity );
+		$description .= '<div class="gr8r-session-bundle-validity">';
+		$description .= esc_html__( 'Valid for', 'gr8r-woo-session-bundles' ) . ' ' . esc_html( $validity_expression );
+		$description .= '</div>';
+	}
+
 	$description .= '</div>';
 
 	return $description;

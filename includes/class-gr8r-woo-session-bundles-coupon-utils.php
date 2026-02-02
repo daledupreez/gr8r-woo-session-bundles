@@ -130,9 +130,18 @@ class GR8R_Woo_Session_Bundles_Coupon_Utils {
 			$email = $order->get_billing_email();
 		}
 
-		// TODO: Make the expiration time configurable within the bundle config.
 		if ( 'subscription' !== $purchased_product->get_type() ) {
-			$coupon_expiry_time = '+3 months';
+			[
+				'count'  => $validity_count,
+				'period' => $validity_period,
+			] = gr8r_session_bundles_get_order_item_bundle_validity( $order_item->get_id() );
+
+			if ( null !== $validity_count && null !== $validity_period ) {
+				$coupon_expiry_time = "+{$validity_count} {$validity_period}" . ( $validity_count > 1 ? 's' : '' );
+			} else {
+				// Fall back to default
+				$coupon_expiry_time = '+3 months';
+			}
 		} else {
 			$coupon_expiry_time = null;
 
@@ -217,7 +226,7 @@ class GR8R_Woo_Session_Bundles_Coupon_Utils {
 				$coupon->set_usage_limit( 1 );
 				$coupon->set_usage_limit_per_user( 1 );
 				$coupon->set_limit_usage_to_x_items( 1 );
-				$coupon->set_date_expires( $coupon_expiry_date );
+				$coupon->set_date_expires( $coupon_expiry_datetime );
 				$coupon->set_date_created( $coupon_created_time );
 				if ( $customer_id ) {
 					$coupon->update_meta_data( '_gr8r_credit_user_id', $customer_id );

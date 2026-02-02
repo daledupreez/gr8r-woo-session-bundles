@@ -10,26 +10,33 @@
 
 .gr8r-woo-session-bundles-bundled-session-list,
 .gr8r-woo-session-bundles-bundled-session-value,
-.gr8r-woo-session-bundles-add-bundled-session {
+.gr8r-woo-session-bundles-add-bundled-session,
+.gr8r-woo-session-bundles-validity-period {
 	padding: 12px;
 }
 
 .dokan-form-group .gr8r-woo-session-bundles-bundled-session-list,
 .dokan-form-group .gr8r-woo-session-bundles-bundled-session-value,
-.dokan-form-group .gr8r-woo-session-bundles-add-bundled-session {
+.dokan-form-group .gr8r-woo-session-bundles-add-bundled-session,
+.dokan-form-group .gr8r-woo-session-bundles-validity-period {
 	padding-left: 0;
 	padding-right: 0;
+}
+
+.woocommerce_options_panel .gr8r-woo-session-bundles-validity-period input[type=number] {
+	width: 20%;
+	min-width: 50px;
 }
 
 .gr8r-woo-session-bundles-bundled-session-list {
 	border-bottom: 1px solid #eee;
 }
 
-h3.gr8r-woo-session-bundles-bundled-session-list-title {
+h3.gr8r-woo-session-bundles-title {
 	margin-top: 0;
 }
 
-.dokan-form-group .gr8r-woo-session-bundles-bundled-session-list-title {
+.dokan-form-group .gr8r-woo-session-bundles-title {
 	font-weight: bold;
 	margin-bottom: 12px;
 }

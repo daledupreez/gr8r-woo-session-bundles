@@ -54,10 +54,16 @@ class GR8R_Woo_Session_Bundles_Admin {
 			return;
 		}
 
-		$bundled_sessions = gr8r_session_bundles_get_product_bundle_meta( $product->get_id() );
+		$bundled_sessions       = gr8r_session_bundles_get_product_bundle_meta( $product->get_id() );
 		$bundled_sessions_count = count( $bundled_sessions );
-		$add_button_class = $bundled_sessions_count > 0 ? 'button-secondary' : 'button-primary';
-		$bundled_sessions_json =  $bundled_sessions_count > 0 ? json_encode( $bundled_sessions, true ) : '{}';
+		$add_button_class       = $bundled_sessions_count > 0 ? 'button-secondary' : 'button-primary';
+		$bundled_sessions_json  = $bundled_sessions_count > 0 ? json_encode( $bundled_sessions, true ) : '{}';
+
+		$is_subscription  = 'subscription' === $product->get_type();
+		$validity_meta    = gr8r_session_bundles_get_product_bundle_validity_meta( $product->get_id() );
+		$validity_count   = $validity_meta['count'] ?? '';
+		$validity_period  = $validity_meta['period'] ?? '';
+		$validity_periods = GR8R_Woo_Session_Bundles_Configuration::get_instance()->get_validity_periods();
 
 		$group_class = is_admin() ? 'options_group' : 'dokan-form-group';
 		// Hide by default and show when we detect the value in the client data.
@@ -68,9 +74,37 @@ class GR8R_Woo_Session_Bundles_Admin {
 
 		wp_nonce_field( 'gr8r_woo_session_bundles_meta', '_gr8r_woo_session_bundles_meta_nonce' );
 
-		?>
+		if ( ! $is_subscription ) : ?>
+		<div class="gr8r-woo-session-bundles-validity-period hide_if_subscription <?php echo esc_attr( $group_class ); ?>" style="display: none;">
+			<h3 class="gr8r-woo-session-bundles-title">
+				<?php esc_html_e( 'Bundle Validity', 'gr8r-woo-session-bundles' ); ?>
+			</h3>
+			<p class="form-field gr8r-woo-session-bundles-validity-period-field">
+				<label for="gr8r-bundle-validity-period-count"><?php esc_html_e( 'How long the bundle should be valid for.', 'gr8r-woo-session-bundles' ); ?></label>
+				<input
+					type="number"
+					id="gr8r-bundle-validity-period-count"
+					name="gr8r_bundle_validity_period_count"
+					value="<?php echo esc_attr( $validity_count ); ?>"
+					min="1"
+					step="1"
+					placeholder="<?php esc_attr_e( 'e.g., 3', 'gr8r-woo-session-bundles' ); ?>"
+				/>
+				<select
+					id="gr8r-bundle-validity-period"
+					name="gr8r_bundle_validity_period"
+				>
+					<option value=""><?php esc_html_e( 'Select period...', 'gr8r-woo-session-bundles' ); ?></option>
+					<?php foreach ( $validity_periods as $period => $configuration ) : ?>
+						<option value="<?php echo esc_attr( $period ); ?>" <?php echo ( $validity_period === $period ) ? 'selected' : ''; ?>><?php echo esc_html( $configuration['label'] ); ?></option>
+					<?php endforeach; ?>
+				</select>
+			</p>
+		</div>
+		<?php endif; ?>
+
 		<div class="gr8r-woo-session-bundles-bundled-session-list">
-			<h3 class="gr8r-woo-session-bundles-bundled-session-list-title">
+			<h3 class="gr8r-woo-session-bundles-title">
 				<?php esc_html_e( 'Bundled Sessions', 'gr8r-woo-session-bundles' ); ?>
 			</h3>
 			<p class="gr8r-woo-session-bundles-no-bundled-sessions" style="<?php echo $bundled_sessions_count > 0 ? 'display: none;' : ''; ?>">
@@ -385,6 +419,37 @@ class GR8R_Woo_Session_Bundles_Admin {
 		gr8r_session_bundles_save_product_bundle_meta( $product->get_id(), $gr8r_bundled_sessions );
 		gr8r_session_bundles_save_product_is_bundle_meta( $product->get_id(), true );
 
+		// Save validity period fields only for non-subscription products
+		if ( 'subscription' !== $product->get_type() ) {
+			$validity_count = null;
+			$validity_period = null;
+
+			if ( isset( $fields['gr8r_bundle_validity_period_count'] ) && ! empty( $fields['gr8r_bundle_validity_period_count'] ) ) {
+				$validity_count = absint( $fields['gr8r_bundle_validity_period_count'] );
+				if ( $validity_count <= 0 ) {
+					$validity_count = null;
+				}
+			}
+
+			if ( isset( $fields['gr8r_bundle_validity_period'] ) && ! empty( $fields['gr8r_bundle_validity_period'] ) ) {
+				$validity_period = sanitize_text_field( $fields['gr8r_bundle_validity_period'] );
+				$allowed_periods = GR8R_Woo_Session_Bundles_Configuration::get_instance()->get_supported_validity_periods();
+				if ( ! in_array( $validity_period, $allowed_periods, true ) ) {
+					$validity_period = null;
+				}
+			}
+
+			// Only save if both are provided, otherwise delete
+			if ( null !== $validity_count && null !== $validity_period ) {
+				gr8r_session_bundles_save_product_validity_period_meta( $product->get_id(), $validity_count, $validity_period );
+			} else {
+				gr8r_session_bundles_save_product_validity_period_meta( $product->get_id(), null, null );
+			}
+		} else {
+			// For subscription products, ensure validity period is deleted
+			gr8r_session_bundles_save_product_validity_period_meta( $product->get_id(), null, null );
+		}
+
 		$this->mark_action_done( 'save_bundled_session_meta', $product->get_id() );
 	}
 
@@ -400,6 +465,8 @@ class GR8R_Woo_Session_Bundles_Admin {
 			'_gr8r_woo_session_bundles_meta_nonce',
 			'_gr8r_is_session_bundle',
 			'gr8r_bundled_sessions',
+			'gr8r_bundle_validity_period_count',
+			'gr8r_bundle_validity_period',
 		);
 
 		$cleaned_fields = array();

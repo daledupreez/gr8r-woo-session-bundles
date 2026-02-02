@@ -57,3 +57,23 @@ function gr8r_session_bundles_save_order_item_is_bundle_meta( $order_item_id, bo
 		wc_delete_order_item_meta( $order_item_id, '_gr8r_is_bundle' );
 	}
 }
+
+function gr8r_session_bundles_get_order_item_bundle_validity( $order_item_id ): array {
+	$validity_meta = array(
+		'count'  => wc_get_order_item_meta( $order_item_id, '_gr8r_bundle_validity_count', true ),
+		'period' => wc_get_order_item_meta( $order_item_id, '_gr8r_bundle_validity_period', true ),
+	);
+
+	return gr8r_session_bundles_normalize_validity_meta( $validity_meta );
+}
+
+function gr8r_session_bundles_save_order_item_bundle_validity_meta( $order_item_id, ?int $validity_count, ?string $validity_period ): void {
+	if ( null === $validity_count || null === $validity_period ) {
+		wc_delete_order_item_meta( $order_item_id, '_gr8r_bundle_validity_count' );
+		wc_delete_order_item_meta( $order_item_id, '_gr8r_bundle_validity_period' );
+		return;
+	}
+
+	wc_update_order_item_meta( $order_item_id, '_gr8r_bundle_validity_count', $validity_count, true );
+	wc_update_order_item_meta( $order_item_id, '_gr8r_bundle_validity_period', $validity_period, true );
+}

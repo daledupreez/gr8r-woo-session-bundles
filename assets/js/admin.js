@@ -269,8 +269,22 @@ jQuery(document).ready(function($) {
         const isSessionBundle = $( '#_gr8r_is_session_bundle' ).prop( 'checked' );
         if ( isSessionBundle ) {
             $( '.show_if_bundled_sessions' ).show();
+            toggleValidityPeriodFields();
         } else {
             $( '.show_if_bundled_sessions' ).hide();
+            $( '.gr8r-woo-session-bundles-validity-period' ).hide();
+        }
+    }
+
+    function toggleValidityPeriodFields() {
+        const productType = $( 'select#product-type' ).val() || $( 'select[name="product_type"]' ).val();
+        const isSubscription = 'subscription' === productType;
+        const isSessionBundle = $( '#_gr8r_is_session_bundle' ).prop( 'checked' );
+
+        if ( isSessionBundle && ! isSubscription ) {
+            $( '.gr8r-woo-session-bundles-validity-period' ).show();
+        } else {
+            $( '.gr8r-woo-session-bundles-validity-period' ).hide();
         }
     }
 
@@ -280,6 +294,9 @@ jQuery(document).ready(function($) {
     $( '#gr8r-woo-session-bundles-add-bundle-product' ).on( 'click', addProductToBundle );
 
     $( '#_gr8r_is_session_bundle' ).on( 'change', toggleSessionBundleOptions );
+
+    // Watch for product type changes
+    $( 'select#product-type, select[name="product_type"]' ).on( 'change', toggleValidityPeriodFields );
 
     initProductSelector();
 

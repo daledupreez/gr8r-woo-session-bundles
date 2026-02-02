@@ -63,7 +63,8 @@ class GR8R_Woo_Session_Bundles_Frontend {
 			$bundled_products,
 			array(
 				'wrapper_class'  => 'gr8r-woo-session-bundles-order-item-meta-details',
-			)
+			),
+			gr8r_session_bundles_get_order_item_bundle_validity( $order_item_id )
 		);
 	}
 
@@ -101,8 +102,10 @@ class GR8R_Woo_Session_Bundles_Frontend {
 			return;
 		}
 
+		$bundle_validity = gr8r_session_bundles_get_order_item_bundle_validity( $order_item_id );
+
 		if ( $is_plain_text ) {
-			$this->render_order_item_bundle_details_plain_text( $bundled_products );
+			$this->render_order_item_bundle_details_plain_text( $bundled_products, $bundle_validity );
 			return;
 		}
 
@@ -110,7 +113,8 @@ class GR8R_Woo_Session_Bundles_Frontend {
 			$bundled_products,
 			array(
 				'wrapper_class'  => 'gr8r-woo-session-bundles-order-item-details',
-			)
+			),
+			$bundle_validity
 		);
 	}
 
@@ -118,10 +122,11 @@ class GR8R_Woo_Session_Bundles_Frontend {
 	 * Render the bundle details for an order item in plain text.
 	 *
 	 * @param int[] $bundled_products The bundled products.
+	 * @param array $bundle_validity The bundle validity.
 	 */
-	protected function render_order_item_bundle_details_plain_text( array $bundled_products ): void {
+	protected function render_order_item_bundle_details_plain_text( array $bundled_products, array $bundle_validity ): void {
 		echo "\n -";
-		esc_html_e( 'Included sessions:', 'gr8r-woo-session-bundles' );
+		echo __( 'Included sessions:', 'gr8r-woo-session-bundles' );
 		echo "\n";
 		foreach ( $bundled_products as $product_id => $quantity ) {
 			$product = wc_get_product( $product_id );
@@ -134,6 +139,14 @@ class GR8R_Woo_Session_Bundles_Frontend {
 					strip_tags( $product->get_price_html() )
 				) . "\n";
 			}
+		}
+		if ( isset( $bundle_validity['count'] ) && isset( $bundle_validity['period'] ) && null !== $bundle_validity['count'] && null !== $bundle_validity['period'] ) {
+			$validity_expression = gr8r_session_bundles_get_bundle_validity_description( $bundle_validity );
+
+			echo "\n";
+			echo __( 'Valid for', 'gr8r-woo-session-bundles' );
+			echo ' ' . $validity_expression;
+			echo "\n";
 		}
 	}
 
@@ -377,6 +390,11 @@ class GR8R_Woo_Session_Bundles_Frontend {
 		if ( is_array( $bundled_products ) && [] !== $bundled_products ) {
 			gr8r_session_bundles_save_order_item_bundle_meta( $order_item_id, $bundled_products );
 			gr8r_session_bundles_save_order_item_is_bundle_meta( $order_item_id, true );
+
+			$validity_meta = gr8r_session_bundles_get_product_bundle_validity_meta( $product_id );
+			if ( null !== $validity_meta['count'] && null !== $validity_meta['period'] ) {
+				gr8r_session_bundles_save_order_item_bundle_validity_meta( $order_item_id, $validity_meta['count'], $validity_meta['period'] );
+			}
 		}
 	}
 
@@ -408,6 +426,16 @@ class GR8R_Woo_Session_Bundles_Frontend {
 						esc_html( $bundle_product->get_name() ),
 						esc_html( $quantity )
 					);
+				}
+			}
+
+			if ( 'subscription' !== $product->get_type() ) {
+				$validity_meta = gr8r_session_bundles_get_product_bundle_validity_meta( $product->get_id() );
+				if ( null !== $validity_meta['count'] && null !== $validity_meta['period'] ) {
+					$validity_expression = gr8r_session_bundles_get_bundle_validity_description( $validity_meta );
+					$summary .= '<div class="session-bundle-validity">';
+					$summary .= esc_html__( 'Valid for', 'gr8r-woo-session-bundles' ) . ' ' . esc_html( $validity_expression );
+					$summary .= '</div>';
 				}
 			}
 
