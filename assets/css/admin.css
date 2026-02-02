@@ -76,7 +76,36 @@ h3.gr8r-woo-session-bundles-title {
 	align-items: center;
 }
 
-.gr8r-woo-session-bundles-order-item-meta-details h4 {
+.gr8r-woo-session-bundles-order-item-coupon {
+	line-height: 1.75em;
+}
+
+.gr8r-woo-session-bundles-order-item-coupon-coupon-status-group {
+	display: flex;
+	column-gap: 1em;
+}
+
+.gr8r-woo-session-bundles-order-item-coupon-coupons {
+	display: flex;
+	column-gap: 0.75em;
+}
+
+.gr8r-woo-session-bundles-order-item-coupon-product {
+	display: flex;
+	column-gap: 1em;
+}
+
+.gr8r-woo-session-bundles-order-item-coupon-product-name {
+	font-weight: bold;
+}
+
+.gr8r-woo-session-bundles-order-item-coupon-product-links {
+	display: flex;
+	column-gap: 1em;
+}
+
+.gr8r-woo-session-bundles-order-item-meta-details h4,
+.gr8r-woo-session-bundles-order-item-coupons h4 {
 	margin-bottom: 0.5em;
 	margin-top: 0.5em;
 }

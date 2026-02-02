@@ -44,7 +44,9 @@ class GR8R_Woo_Session_Bundles_Admin {
 		add_action( 'wp_ajax_gr8r_woo_session_bundles_check_stock', array( $this, 'ajax_check_stock' ) );
 		add_action( 'wp_ajax_gr8r_woo_session_bundles_get_product_data', array( $this, 'ajax_get_product_data' ) );
 	
+		// Order admin hooks.
 		add_filter( 'woocommerce_hidden_order_itemmeta', array( $this, 'hide_order_item_bundle_meta' ) );
+		add_action( 'woocommerce_after_order_itemmeta', array( $this, 'render_order_line_item_coupons' ), 50, 2 );
 	}
 
 	/**
@@ -166,6 +168,109 @@ class GR8R_Woo_Session_Bundles_Admin {
 			<div class="dokan-clearfix"></div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Render the generated coupons for an order item that includes session bundles.
+	 *
+	 * @param int                   $order_item_id Order item ID.
+	 * @param WC_Order_Item_Product $order_item    Order item product.
+	 * @return void
+	 */
+	public function render_order_line_item_coupons( $order_item_id, $order_item ) {
+		if ( ! gr8r_session_bundles_is_bundle_order_item( $order_item ) ) {
+			return;
+		}
+
+		$coupons = GR8R_Woo_Session_Bundles_Coupon_Utils::get_instance()->get_coupons_for_order_item( $order_item_id );
+
+		if ( empty( $coupons ) ) {
+			return;
+		}
+
+		$coupons_by_product_id = [];
+
+		foreach ( $coupons as $coupon ) {
+			$product_ids = $coupon->get_product_ids( 'edit' );
+			$product_id = reset( $product_ids );
+			if ( ! $product_id ) {
+				continue;
+			}
+
+			if ( ! isset( $coupons_by_product_id[ $product_id ] ) ) {
+				$coupons_by_product_id[ $product_id ] = [
+					'available' => [],
+					'expired'   => [],
+					'used'      => [],
+				];
+			}
+
+			$usage_count  = $coupon->get_usage_count();
+			$usage_limit  = $coupon->get_usage_limit();
+			$date_expires = $coupon->get_date_expires();
+
+			if ( $usage_count >= $usage_limit ) {
+				$coupons_by_product_id[ $product_id ]['used'][] = $coupon;
+			} else if ( $date_expires && ( $date_expires->getTimestamp() < time() ) ) {
+				$coupons_by_product_id[ $product_id ]['expired'][] = $coupon;
+			} else {
+				$coupons_by_product_id[ $product_id ]['available'][] = $coupon;
+			}
+		}
+
+		echo '<hr />';
+		echo '<div class="gr8r-woo-session-bundles-order-item-coupons">';
+		echo '<h4>' . esc_html__( 'Generated Session Bundle Coupons', 'gr8r-woo-session-bundles' ) . '</h4>';
+
+		$translated_coupon_statuses = [
+			'available' => __( 'Available:', 'gr8r-woo-session-bundles' ),
+			'expired'   => __( 'Expired:', 'gr8r-woo-session-bundles' ),
+			'used'      => __( 'Used:', 'gr8r-woo-session-bundles' ),
+		];
+
+		foreach ( $coupons_by_product_id as $product_id => $coupons ) {
+			$product = wc_get_product( $product_id );
+			if ( $product ) {
+				$product_name = $product->get_name();
+			} else {
+				$product_name = sprintf( __( 'Product #%d (not found)', 'gr8r-woo-session-bundles' ), $product_id );
+			}
+
+			echo '<div class="gr8r-woo-session-bundles-order-item-coupon">';
+			echo '<div class="gr8r-woo-session-bundles-order-item-coupon-product">';
+			echo '<div class="gr8r-woo-session-bundles-order-item-coupon-product-name">' . esc_html( $product_name ) . '</div>';
+			if ( $product ) {
+				echo '<div class="gr8r-woo-session-bundles-order-item-coupon-product-links">';
+				echo '<a href="' . esc_url( get_edit_post_link( $product_id ) ) . '" target="_blank">' . esc_html__( 'Edit', 'gr8r-woo-session-bundles' ) . '</a>';
+				echo '<a href="' . esc_url( $product->get_permalink() ) . '" target="_blank">' . esc_html__( 'View', 'gr8r-woo-session-bundles' ) . '</a>';
+				echo '</div>';
+			}
+			echo '</div>';
+
+			foreach ( $coupons as $coupon_status => $coupons_in_status ) {
+				if ( [] === $coupons_in_status ) {
+					continue;
+				}
+
+				$coupon_status_label = $translated_coupon_statuses[ $coupon_status ] ?? $coupon_status;
+
+				echo '<div class="gr8r-woo-session-bundles-order-item-coupon-coupon-status-group">';
+
+				echo '<div class="gr8r-woo-session-bundles-order-item-coupon-coupon-status"><em>' . esc_html( $coupon_status_label ) . esc_html( ' (' . count( $coupons_in_status ) . ')' ) . '</em></div>';
+				echo '<div class="gr8r-woo-session-bundles-order-item-coupon-coupons">';
+				foreach ( $coupons_in_status as $coupon ) {
+					$coupon_edit_url = get_edit_post_link( $coupon->get_id() );
+					echo '<div class="gr8r-woo-session-bundles-order-item-coupon-coupon">';
+					echo '<a href="' . esc_url( $coupon_edit_url ) . '" target="_blank">' . esc_html( $coupon->get_code() ) . '</a>';
+					echo '</div>';
+				}
+				echo '</div>';
+				echo '</div>';
+			}
+
+			echo '</div>';
+		}
+		echo '</div>';
 	}
 
 	/**

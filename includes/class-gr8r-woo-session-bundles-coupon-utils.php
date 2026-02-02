@@ -93,7 +93,47 @@ class GR8R_Woo_Session_Bundles_Coupon_Utils {
 	   return (int) $coupon_id;
    }
 
-   /**
+	/**
+	 * Get the coupons that were generated for an order item.
+	 *
+	 * @param int $order_item_id The order item ID.
+	 * @return WC_Coupon[] The coupons that were generated for the order item.
+	 */
+	public function get_coupons_for_order_item( int $order_item_id ): array {
+		if ( 0 >= $order_item_id ) {
+			return [];
+		}
+
+		$coupon_ids = get_posts(
+			array(
+				'post_type'      => 'shop_coupon',
+				'posts_per_page' => -1,
+				'post_status'    => 'publish',
+				'fields'         => 'ids',
+				'meta_query'     => array(
+					'order_item_clause' => array(
+						'key'   => '_gr8r_credit_order_item_id',
+						'value' => (string) $order_item_id,
+					),
+				),
+			)
+		);
+
+		if ( empty( $coupon_ids ) ) {
+			return [];
+		}
+
+		$coupons = array_map(
+			function( $coupon_id ) {
+				return new WC_Coupon( $coupon_id );
+			},
+			$coupon_ids
+		);
+
+		return $coupons;
+	}
+
+	/**
 	 * Generate a coupon for a product.
 	 *
 	 * @param int                   $product_id        The bundled product ID.
