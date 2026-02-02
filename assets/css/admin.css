@@ -80,6 +80,10 @@ h3.gr8r-woo-session-bundles-title {
 	line-height: 1.75em;
 }
 
+.gr8r-woo-session-bundles-order-item-coupon-coupon-status {
+	font-style: italic;
+}
+
 .gr8r-woo-session-bundles-order-item-coupon-coupon-status-group {
 	display: flex;
 	column-gap: 1em;

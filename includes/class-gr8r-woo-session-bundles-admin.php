@@ -190,6 +190,9 @@ class GR8R_Woo_Session_Bundles_Admin {
 
 		$coupons_by_product_id = [];
 
+		$user_can_edit_products = current_user_can( 'edit_products' );
+		$user_can_edit_coupons  = current_user_can( 'edit_shop_coupons' );
+
 		foreach ( $coupons as $coupon ) {
 			$product_ids = $coupon->get_product_ids( 'edit' );
 			$product_id = reset( $product_ids );
@@ -241,7 +244,9 @@ class GR8R_Woo_Session_Bundles_Admin {
 			echo '<div class="gr8r-woo-session-bundles-order-item-coupon-product-name">' . esc_html( $product_name ) . '</div>';
 			if ( $product ) {
 				echo '<div class="gr8r-woo-session-bundles-order-item-coupon-product-links">';
-				echo '<a href="' . esc_url( get_edit_post_link( $product_id ) ) . '" target="_blank">' . esc_html__( 'Edit', 'gr8r-woo-session-bundles' ) . '</a>';
+				if ( $user_can_edit_products ) {
+					echo '<a href="' . esc_url( get_edit_post_link( $product_id ) ) . '" target="_blank">' . esc_html__( 'Edit', 'gr8r-woo-session-bundles' ) . '</a>';
+				}
 				echo '<a href="' . esc_url( $product->get_permalink() ) . '" target="_blank">' . esc_html__( 'View', 'gr8r-woo-session-bundles' ) . '</a>';
 				echo '</div>';
 			}
@@ -256,15 +261,20 @@ class GR8R_Woo_Session_Bundles_Admin {
 
 				echo '<div class="gr8r-woo-session-bundles-order-item-coupon-coupon-status-group">';
 
-				echo '<div class="gr8r-woo-session-bundles-order-item-coupon-coupon-status"><em>' . esc_html( $coupon_status_label ) . esc_html( ' (' . count( $coupons_in_status ) . ')' ) . '</em></div>';
+				echo '<div class="gr8r-woo-session-bundles-order-item-coupon-coupon-status">' . esc_html( $coupon_status_label ) . esc_html( ' (' . count( $coupons_in_status ) . ')' ) . '</div>';
 				echo '<div class="gr8r-woo-session-bundles-order-item-coupon-coupons">';
 				foreach ( $coupons_in_status as $coupon ) {
-					$coupon_edit_url = get_edit_post_link( $coupon->get_id() );
 					echo '<div class="gr8r-woo-session-bundles-order-item-coupon-coupon">';
-					echo '<a href="' . esc_url( $coupon_edit_url ) . '" target="_blank">' . esc_html( $coupon->get_code() ) . '</a>';
+					if ( $user_can_edit_coupons ) {
+						$coupon_edit_url = get_edit_post_link( $coupon->get_id() );
+						echo '<a href="' . esc_url( $coupon_edit_url ) . '" target="_blank">' . esc_html( $coupon->get_code() ) . '</a>';
+					} else {
+						echo '<span>' . esc_html( $coupon->get_code() ) . '</span>';
+					}
 					echo '</div>';
 				}
 				echo '</div>';
+
 				echo '</div>';
 			}
 
