@@ -47,6 +47,9 @@ class GR8R_Woo_Session_Bundles_Admin {
 		// Order admin hooks.
 		add_filter( 'woocommerce_hidden_order_itemmeta', array( $this, 'hide_order_item_bundle_meta' ) );
 		add_action( 'woocommerce_after_order_itemmeta', array( $this, 'render_order_line_item_coupons' ), 50, 2 );
+
+		// Coupon edit screen hooks.
+		add_action( 'woocommerce_coupon_options', array( $this, 'render_coupon_session_bundle_fields' ), 10, 2 );
 	}
 
 	/**
@@ -298,6 +301,257 @@ class GR8R_Woo_Session_Bundles_Admin {
 	}
 
 	/**
+	 * Render session bundle origin fields on the coupon edit screen.
+	 *
+	 * @param int       $coupon_id The coupon ID.
+	 * @param WC_Coupon $coupon    The coupon object.
+	 * @return void
+	 */
+	public function render_coupon_session_bundle_fields( $coupon_id, $coupon ) {
+		if ( ! $coupon || ! $coupon instanceof WC_Coupon ) {
+			return;
+		}
+
+		$bundle_product_id = $coupon->get_meta( '_gr8r_credit_bundle_product_id' );
+
+		if ( ! $bundle_product_id ) {
+			return;
+		}
+
+		?>
+		<div class="options_group gr8r-woo-session-bundles-coupon-fields">
+			<hr />
+			<h3 class="gr8r-woo-session-bundles-coupon-header">
+				<?php esc_html_e( 'Session Bundle Details', 'gr8r-woo-session-bundles' ); ?>
+			</h3>
+			<?php
+			$this->render_coupon_customer_field( $coupon );
+			$this->render_coupon_bundle_product_field( $coupon );
+			$this->render_coupon_bundle_vendor_field( $coupon );
+			$this->render_coupon_order_field( $coupon );
+			?>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Render the customer field for coupon origin.
+	 *
+	 * @param WC_Coupon $coupon The coupon object.
+	 * @return void
+	 */
+	protected function render_coupon_customer_field( $coupon ) {
+		$user_id = $coupon->get_meta( '_gr8r_credit_user_id' );
+
+		if ( ! $user_id ) {
+			return;
+		}
+
+		$user          = get_user_by( 'id', $user_id );
+		$display_value = $user
+			? sprintf( '%s (%s)', $user->display_name, $user->user_email )
+			: sprintf( __( 'User #%d (not found)', 'gr8r-woo-session-bundles' ), $user_id );
+
+		$description = '';
+		if ( $user && current_user_can( 'edit_users' ) ) {
+			$description = sprintf(
+				'<a href="%s" target="_blank">%s</a>',
+				esc_url( get_edit_user_link( $user_id ) ),
+				esc_html__( 'Edit user', 'gr8r-woo-session-bundles' )
+			);
+		}
+
+		woocommerce_wp_text_input(
+			array(
+				'id'                => '_gr8r_credit_user_id_display',
+				'label'             => __( 'Customer', 'gr8r-woo-session-bundles' ),
+				'value'             => $display_value,
+				'description'       => $description,
+				'desc_tip'          => false,
+				'custom_attributes' => array(
+					'readonly' => 'readonly',
+				),
+			)
+		);
+	}
+
+	/**
+	 * Render the bundle product field for coupon origin.
+	 *
+	 * @param WC_Coupon $coupon The coupon object.
+	 * @return void
+	 */
+	protected function render_coupon_bundle_product_field( $coupon ) {
+		$product_id = $coupon->get_meta( '_gr8r_credit_bundle_product_id' );
+
+		if ( ! $product_id ) {
+			return;
+		}
+
+		$product       = wc_get_product( $product_id );
+		$display_value = $product
+			? $product->get_name()
+			: sprintf( __( 'Product #%d (not found)', 'gr8r-woo-session-bundles' ), $product_id );
+
+		$links = array();
+		if ( $product ) {
+			if ( current_user_can( 'edit_products' ) ) {
+				$links[] = sprintf(
+					'<a href="%s" target="_blank">%s</a>',
+					esc_url( get_edit_post_link( $product_id ) ),
+					esc_html__( 'Edit', 'gr8r-woo-session-bundles' )
+				);
+			}
+			$links[] = sprintf(
+				'<a href="%s" target="_blank">%s</a>',
+				esc_url( $product->get_permalink() ),
+				esc_html__( 'View', 'gr8r-woo-session-bundles' )
+			);
+		}
+		$description = implode( ' | ', $links );
+
+		woocommerce_wp_text_input(
+			array(
+				'id'                => '_gr8r_credit_bundle_product_id_display',
+				'label'             => __( 'Bundle Product', 'gr8r-woo-session-bundles' ),
+				'value'             => $display_value,
+				'description'       => $description,
+				'desc_tip'          => false,
+				'custom_attributes' => array(
+					'readonly' => 'readonly',
+				),
+			)
+		);
+	}
+
+	/**
+	 * Render the vendor details for a coupon.
+	 *
+	 * @param WC_Coupon $coupon The coupon object.
+	 * @return void
+	 */
+	protected function render_coupon_bundle_vendor_field( $coupon ) {
+		$product_id = $coupon->get_meta( '_gr8r_credit_bundle_product_id' );
+
+		if ( ! $product_id ) {
+			return;
+		}
+
+		if ( ! function_exists( 'dokan_get_vendor_by_product' ) ) {
+			return;
+		}
+
+		$vendor = dokan_get_vendor_by_product( $product_id );
+
+		if ( ! $vendor ) {
+			return;
+		}
+
+		$vendor_name = $this->get_dokan_vendor_name( $vendor );
+		if ( empty( $vendor_name ) ) {
+			return;
+		}
+
+		$links = array();
+		if ( $vendor && current_user_can( 'edit_users' ) ) {
+			$links[] = sprintf(
+				'<a href="%s" target="_blank">%s</a>',
+				esc_url( get_edit_user_link( $vendor->get_id() ) ),
+				esc_html__( 'Edit user', 'gr8r-woo-session-bundles' )
+			);
+		}
+		$links[] = sprintf(
+			'<a href="%s" target="_blank">%s</a>',
+			esc_url( $vendor->get_shop_url() ),
+			esc_html__( 'View store', 'gr8r-woo-session-bundles' )
+		);
+		$description = implode( ' | ', $links );
+
+		woocommerce_wp_text_input(
+			array(
+				'id'                => '_gr8r_credit_dokan_vendor_display',
+				'label'             => __( 'Vendor', 'gr8r-woo-session-bundles' ),
+				'value'             => $vendor_name,
+				'description'       => $description,
+				'desc_tip'          => false,
+				'custom_attributes' => array(
+					'readonly' => 'readonly',
+				),
+			)
+		);
+	}
+
+	/**
+	 * Get the name of a Dokan vendor.
+	 *
+	 * @param \WeDevs\Dokan\Vendor\Vendor $vendor The vendor object.
+	 * @return string The vendor name.
+	 */
+	protected function get_dokan_vendor_name( $vendor ) {
+		$vendor_name = $vendor->get_shop_name();
+		if ( ! empty( $vendor_name ) ) {
+			return $vendor_name;
+		}
+
+		$vendor_name = $vendor->get_name();
+		if ( ! empty( $vendor_name ) ) {
+			return $vendor_name;
+		}
+
+		$user_id = $vendor->get_id();
+		if ( empty( $user_id ) ) {
+			return '';
+		}
+
+		$user = get_user_by( 'id', $user_id );
+		if ( ! $user ) {
+			return '';
+		}
+
+		return $user->user_login;
+	}
+	/**
+	 * Render the order field for coupon origin.
+	 *
+	 * @param WC_Coupon $coupon The coupon object.
+	 * @return void
+	 */
+	protected function render_coupon_order_field( $coupon ) {
+		$order_id = $coupon->get_meta( '_gr8r_credit_order_id' );
+
+		if ( ! $order_id ) {
+			return;
+		}
+
+		$order         = wc_get_order( $order_id );
+		$display_value = $order
+			? sprintf( __( 'Order #%s', 'gr8r-woo-session-bundles' ), $order->get_order_number() )
+			: sprintf( __( 'Order #%d (not found)', 'gr8r-woo-session-bundles' ), $order_id );
+
+		$description = '';
+		if ( $order && current_user_can( 'edit_shop_orders' ) ) {
+			$description = sprintf(
+				'<a href="%s" target="_blank">%s</a>',
+				esc_url( $order->get_edit_order_url() ),
+				esc_html__( 'View order', 'gr8r-woo-session-bundles' )
+			);
+		}
+
+		woocommerce_wp_text_input(
+			array(
+				'id'                => '_gr8r_credit_order_id_display',
+				'label'             => __( 'Order', 'gr8r-woo-session-bundles' ),
+				'value'             => $display_value,
+				'description'       => $description,
+				'desc_tip'          => false,
+				'custom_attributes' => array(
+					'readonly' => 'readonly',
+				),
+			)
+		);
+	}
+
+	/**
 	 * Enqueue admin scripts.
 	 *
 	 * @param string $hook Current admin page.
@@ -308,9 +562,9 @@ class GR8R_Woo_Session_Bundles_Admin {
 		$should_enqueue = false;
 		$screen = get_current_screen();
 
-		if ( 'product' === $post_type || 'shop_order' === $post_type ) {
+		if ( 'product' === $post_type || 'shop_order' === $post_type || 'shop_coupon' === $post_type ) {
 			$should_enqueue = true;
-		} elseif ( 'shop_order' === $screen->post_type ) {
+		} elseif ( $screen && in_array( $screen->post_type, array( 'shop_order', 'shop_coupon' ), true ) ) {
 			$should_enqueue = true;
 		}
 

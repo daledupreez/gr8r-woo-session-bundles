@@ -119,6 +119,23 @@ h3.gr8r-woo-session-bundles-title {
 	margin-top: 0;
 }
 
+/* Coupon admin read-only fields */
+.gr8r-woo-session-bundles-coupon-fields {
+	margin-top: 1em;
+	padding-top: 1em;
+}
+
+h3.gr8r-woo-session-bundles-coupon-header {
+	margin: 0.5em;
+	/* Match the form field margins */
+	margin-left: 12px;
+}
+
+.gr8r-woo-session-bundles-coupon-fields input[type="text"][readonly] {
+	cursor: default;
+	color: var(--wc-secondary-text);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
 
