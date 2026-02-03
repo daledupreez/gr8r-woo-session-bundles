@@ -929,8 +929,11 @@ class GR8R_Woo_Session_Bundles_Admin {
 		$dokan_vendor_id = null;
 		if ( '' !== $http_referrer ) {
 			$referrer_path = parse_url( $http_referrer, PHP_URL_PATH );
-			if ( str_starts_with( $referrer_path, '/dashboard/' ) && function_exists( 'dokan' ) ) {
-				$dokan_vendor_id = dokan_get_current_user_id();
+			if ( str_starts_with( $referrer_path, '/dashboard/' ) && function_exists( 'dokan_get_current_user_id' ) ) {
+				$dokan_user_id = dokan_get_current_user_id();
+				if ( function_exists( 'dokan_is_user_seller' ) && dokan_is_user_seller( $dokan_user_id ) ) {
+					$dokan_vendor_id = $dokan_user_id;
+				}
 			}
 		}
 
@@ -942,23 +945,39 @@ class GR8R_Woo_Session_Bundles_Admin {
 			$allowed_bundled_product_types = GR8R_Woo_Session_Bundles_Configuration::get_instance()->get_allowed_bundled_product_types();
 
 			if ( ! empty( $allowed_bundled_product_types ) ) {
+				$search_for_products = true;
+
 				if ( $dokan_vendor_id ) {
-					$include_ids = dokan()->product->all( array( 'author' => $dokan_vendor_id, 'fields' => 'ids', 'product_type' => $allowed_bundled_product_types ) )->posts;
+					$include_ids = dokan()->product->all(
+						array(
+							'author'       => $dokan_vendor_id,
+							'fields'       => 'ids',
+							'product_type' => $allowed_bundled_product_types,
+							'perm'         => 'editable',
+						)
+					)->get_posts();
+
+					// If there are no editable products, we need to explicity bypass the search below.
+					if ( array() === $include_ids ) {
+						$search_for_products = false;
+					}
 				}
 
-				$data_store  = WC_Data_Store::load( 'product' );
-				$product_ids = $data_store->search_products( $search_term, '', false, false, 30, $include_ids, $exclude_ids );
+				if ( $search_for_products ) {
+					$data_store  = WC_Data_Store::load( 'product' );
+					$product_ids = $data_store->search_products( $search_term, '', false, false, 30, $include_ids, $exclude_ids );
 
-				foreach ( $product_ids as $product_id ) {
-					$product = wc_get_product( $product_id );
+					foreach ( $product_ids as $product_id ) {
+						$product = wc_get_product( $product_id );
 
-					if ( ! $product ) {
-						continue;
-					}
+						if ( ! $product ) {
+							continue;
+						}
 
-					// If we have a vendor, we already filterd on product type, otherwise we still need to filter
-					if ( $dokan_vendor_id || in_array( $product->get_type(), $allowed_bundled_product_types, true ) ) {
-						$products[] = $this->get_product_details( $product, $dokan_vendor_id ? 'dokan' : 'admin' );
+						// If we have a vendor, we already filterd on product type, otherwise we still need to filter
+						if ( $dokan_vendor_id || in_array( $product->get_type(), $allowed_bundled_product_types, true ) ) {
+							$products[] = $this->get_product_details( $product, $dokan_vendor_id ? 'dokan' : 'admin' );
+						}
 					}
 				}
 			}
