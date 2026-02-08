@@ -9,6 +9,8 @@ jQuery(document).ready(function($) {
 
 	var bundledSessions = {};
 
+	var usePreloadedProducts = gr8r_woo_session_bundles_admin.use_preloaded_products ?? false;
+
 	function getBundledProductIds() {
 		return Object.keys( bundledSessions );
 	}
@@ -32,10 +34,19 @@ jQuery(document).ready(function($) {
 	}
 
 	function hydrateProductDetails() {
+		// Hydrate from bundled product details (products already in the bundle).
 		const bundledProductDetails = gr8r_woo_session_bundles_admin.bundled_product_details ?? {};
 
 		Object.values( bundledProductDetails ).forEach( ( productData ) => {
 			productDetails[ productData.id ] = productData;
+		} );
+
+		// Hydrate from available products (for pre-loaded mode).
+		const availableProducts = gr8r_woo_session_bundles_admin.available_products ?? [];
+		availableProducts.forEach( ( productData ) => {
+			if ( productData?.id && ! productDetails[ productData.id ] ) {
+				productDetails[ productData.id ] = productData;
+			}
 		} );
 	}
 
@@ -45,18 +56,37 @@ jQuery(document).ready(function($) {
 		bundledSessions = JSON.parse( jsonValue );
 	}
 
-	// Initialize product selector
+	// Initialize product selector based on mode.
 	function initProductSelector() {
-		$('#gr8r-woo-session-bundles-add-bundled-product-selector').select2({
-			minimumInputLength: 3,
+		const commonSelectConfig = {
+			allowClear: true,
 			escapeMarkup: function( m ) {
 				return m;
 			},
+			templateResult: formatProductOption,
+			templateSelection: formatProductSelection,
+		};
+
+		const selectConfig = usePreloadedProducts ? {
+			...commonSelectConfig,
+			data: getSelectablePreloadedProductsData(),
+			placeholder: gr8r_woo_session_bundles_admin.strings.select_products,
+			matcher: customProductMatcher,
+			language: {
+				noResults: function() {
+					return gr8r_woo_session_bundles_admin.strings.no_products_found || 'No results found';
+				}
+			}
+		} : {
+			...commonSelectConfig,
+			minimumInputLength: 3,
+			placeholder: gr8r_woo_session_bundles_admin.strings.search_products,
 			ajax: {
 				url: gr8r_woo_session_bundles_admin.ajax_url,
 				dataType: 'json',
 				delay: 250,
-				data: function(params) {
+				cache: true,
+				data: function( params ) {
 					return {
 						action: 'gr8r_woo_session_bundles_search_products',
 						nonce: gr8r_woo_session_bundles_admin.nonce,
@@ -65,7 +95,7 @@ jQuery(document).ready(function($) {
 						exclude_ids: getBundledProductIds(),
 					};
 				},
-				processResults: function(data, params) {
+				processResults: function( data, params ) {
 					const results = Array.isArray( data?.products ) ? data.products : [];
 
 					// Populate the product details from the results.
@@ -77,22 +107,90 @@ jQuery(document).ready(function($) {
 
 					return { results };
 				},
-				cache: true
 			},
-			placeholder: gr8r_woo_session_bundles_admin.strings.select_products,
-			templateResult: formatProductOption,
-			templateSelection: formatProductSelection,
+		};
+
+		$( '#gr8r-woo-session-bundles-add-bundled-product-selector' ).select2( selectConfig );
+	}
+
+	// Get selectable products data for Select2 (excludes already bundled products).
+	function getSelectablePreloadedProductsData() {
+		var allProducts = gr8r_woo_session_bundles_admin.available_products || [];
+		var bundledIds = getBundledProductIds();
+
+		var availableProducts = allProducts.filter( function( product ) {
+			return bundledIds.indexOf( String( product.id ) ) === -1;
+		} );
+
+		return formatProductsForSelect2( availableProducts );
+	}
+
+	// Format products array for Select2 data format.
+	function formatProductsForSelect2( products ) {
+		return products.map( function( product ) {
+			return {
+				id: product.id,
+				text: product.name + ' (#' + product.id + ')',
+				name: product.name,
+				price: product.price,
+				priceHTML: product.priceHTML,
+				url: product.url,
+				edit_url: product.edit_url
+			};
 		} );
 	}
 
-	// Format product option for dropdown
-	function formatProductOption(product) {
-		if (product.loading) {
+	// Custom matcher for filtering pre-loaded products by name or ID.
+	function customProductMatcher( params, data ) {
+		// If there is no search term, return all data.
+		if ( typeof params.term !== 'string' ) {
+			return data;
+		}
+
+		const term = params.term.trim().toLowerCase();
+		if ( term === '' ) {
+			return data;
+		}
+
+		// Skip if no text to search.
+		if ( typeof data.text !== 'string' ) {
+			return null;
+		}
+
+		// Match against text, which includes both name and ID.
+		if ( data.text.toLowerCase().indexOf( term ) > -1 ) {
+			return data;
+		}
+
+		return null;
+	}
+
+	// Refresh the selectable products in the dropdown (for pre-loaded mode).
+	function refreshSelectableProducts() {
+		if ( ! usePreloadedProducts ) {
+			return;
+		}
+
+		var $selector = $( '#gr8r-woo-session-bundles-add-bundled-product-selector' );
+
+		// Clear current selection.
+		$selector.val( null ).trigger( 'change' );
+
+		// Destroy and reinitialize with updated data.
+		$selector.empty();
+		$selector.select2( 'destroy' );
+		initProductSelector();
+	}
+
+	// Format product option for dropdown.
+	function formatProductOption( product ) {
+		if ( product.loading ) {
 			return product.text;
 		}
 
+		var priceHTML = product.priceHTML || '';
 		var $option = $(
-			'<div>' + product.name + ' (#' + product.id + ') — ' + product.priceHTML + '</div>'
+			'<div>' + product.name + ' (#' + product.id + ')' + ( priceHTML ? ' — ' + priceHTML : '' ) + '</div>'
 		);
 
 		return $option;
@@ -110,13 +208,26 @@ jQuery(document).ready(function($) {
 		return `${product.name} (#${product.id})`;
 	}
 
-	// Add product to bundle
+	// Add product to bundle.
 	function addProductToBundle() {
-		const productIdToAdd = $( '#gr8r-woo-session-bundles-add-bundled-product-selector' ).val();
-		const productData = $( '#gr8r-woo-session-bundles-add-bundled-product-selector' ).select2( 'data' )[0];
+		var $selector = $( '#gr8r-woo-session-bundles-add-bundled-product-selector' );
+		const productIdToAdd = $selector.val();
+		const productData = $selector.select2( 'data' )[0];
 
 		if ( ! productIdToAdd || ! productData ) {
 			return;
+		}
+
+		// Ensure productDetails has the full data.
+		if ( ! productDetails[ productIdToAdd ] ) {
+			productDetails[ productIdToAdd ] = {
+				id: productData.id,
+				name: productData.name,
+				price: productData.price,
+				priceHTML: productData.priceHTML,
+				url: productData.url,
+				edit_url: productData.edit_url
+			};
 		}
 
 		const bundledElementId = 'gr8r-woo-session-bundles-bundled-session-product-' + productIdToAdd;
@@ -131,9 +242,13 @@ jQuery(document).ready(function($) {
 		updateBundledSessions( { [ productIdToAdd ]: 1 } );
 
 		renderBundledSessions();
+
+		// Clear selection and refresh dropdown for pre-loaded mode.
+		$selector.val( null ).trigger( 'change' );
+		refreshSelectableProducts();
 	}
 
-	// Remove product from bundle
+	// Remove product from bundle.
 	function removeProductFromBundle() {
 		const productId = $(this).data( 'product-id' );
 
@@ -143,6 +258,10 @@ jQuery(document).ready(function($) {
 
 		updateBundledSessions( { [ productId ]: 0 } );
 		$( '#gr8r-woo-session-bundles-bundled-session-product-' + productId ).remove();
+
+		// Update bundle total and refresh dropdown for pre-loaded mode.
+		updateBundleEffectiveTotal();
+		refreshSelectableProducts();
 	}
 
 	function updateBundledSessionQuantity() {
@@ -201,7 +320,7 @@ jQuery(document).ready(function($) {
 		return String( value );
 	}
 
-	// Format price
+	// Format price.
 	function formatPrice(price) {
 		const storeCurrency = window?.wcSettings?.currency;
 		if ( ! storeCurrency ) {
@@ -295,7 +414,7 @@ jQuery(document).ready(function($) {
 
 	$( '#_gr8r_is_session_bundle' ).on( 'change', toggleSessionBundleOptions );
 
-	// Watch for product type changes
+	// Watch for product type changes.
 	$( 'select#product-type, select[name="product_type"]' ).on( 'change', toggleValidityPeriodFields );
 
 	initProductSelector();

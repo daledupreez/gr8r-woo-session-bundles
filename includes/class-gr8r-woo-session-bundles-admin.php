@@ -623,6 +623,16 @@ class GR8R_Woo_Session_Bundles_Admin {
 			$bundled_product_details = $this->get_product_details_for_bundled_sessions( $current_post->ID, $context );
 		}
 
+		// Determine vendor ID for Dokan context.
+		$dokan_vendor_id = null;
+		if ( 'dokan' === $context && function_exists( 'dokan_get_current_user_id' ) ) {
+			$dokan_vendor_id = dokan_get_current_user_id();
+		}
+
+		// Determine if pre-loaded products should be used.
+		$use_preloaded_products = $this->should_use_preloaded_products( $dokan_vendor_id );
+		$available_products     = $use_preloaded_products ? $this->get_all_products_for_bundles( $dokan_vendor_id, $context ) : array();
+
 		wp_localize_script(
 			'gr8r-woo-session-bundles-admin',
 			'gr8r_woo_session_bundles_admin',
@@ -630,13 +640,17 @@ class GR8R_Woo_Session_Bundles_Admin {
 				'ajax_url'                => admin_url( 'admin-ajax.php' ),
 				'nonce'                   => wp_create_nonce( 'gr8r_woo_session_bundles_admin_nonce' ),
 				'bundled_product_details' => $bundled_product_details,
+				'available_products'      => $available_products,
+				'use_preloaded_products'  => $use_preloaded_products,
 				'product_types'           => GR8R_Woo_Session_Bundles_Configuration::get_instance()->get_supported_product_types(),
 				'strings'                 => array(
-					'select_products' => __( 'Search for products...', 'gr8r-woo-session-bundles' ),
-					'remove_product'  => __( 'Remove', 'gr8r-woo-session-bundles' ),
-					'quantity'        => __( 'Quantity', 'gr8r-woo-session-bundles' ),
-					'view_product'    => __( 'View', 'gr8r-woo-session-bundles' ),
-					'edit_product'    => __( 'Edit', 'gr8r-woo-session-bundles' ),
+					'select_products'   => __( 'Select a product...', 'gr8r-woo-session-bundles' ),
+					'search_products'   => __( 'Search for products...', 'gr8r-woo-session-bundles' ),
+					'remove_product'    => __( 'Remove', 'gr8r-woo-session-bundles' ),
+					'quantity'          => __( 'Quantity', 'gr8r-woo-session-bundles' ),
+					'view_product'      => __( 'View', 'gr8r-woo-session-bundles' ),
+					'edit_product'      => __( 'Edit', 'gr8r-woo-session-bundles' ),
+					'no_products_found' => __( 'No eligible products found', 'gr8r-woo-session-bundles' ),
 				),
 			)
 		);
@@ -662,6 +676,62 @@ class GR8R_Woo_Session_Bundles_Admin {
 		}
 
 		return $product_details;
+	}
+
+	/**
+	 * Get all products eligible for bundling.
+	 *
+	 * @param int|null $vendor_id Optional vendor ID to filter products by author.
+	 * @param string   $context   The context ('admin' or 'dokan').
+	 * @return array Array of product details suitable for Select2.
+	 */
+	protected function get_all_products_for_bundles( ?int $vendor_id = null, string $context = 'admin' ): array {
+		$allowed_types = GR8R_Woo_Session_Bundles_Configuration::get_instance()->get_allowed_bundled_product_types();
+
+		if ( empty( $allowed_types ) ) {
+			return array();
+		}
+
+		$args = array(
+			'type'    => $allowed_types,
+			'status'  => 'publish',
+			'limit'   => -1,
+			'orderby' => 'title',
+			'order'   => 'ASC',
+		);
+
+		if ( $vendor_id ) {
+			$args['author'] = $vendor_id;
+		}
+
+		$products = wc_get_products( $args );
+		$result   = array();
+
+		foreach ( $products as $product ) {
+			if ( gr8r_session_bundles_is_bundle_product( $product->get_id() ) ) {
+				continue;
+			}
+
+			$result[] = $this->get_product_details( $product, $context );
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Determine if pre-loaded product selection should be used.
+	 *
+	 * @param int|null $vendor_id Optional vendor ID.
+	 * @return bool True to use pre-loaded selection, false to use AJAX.
+	 */
+	protected function should_use_preloaded_products( ?int $vendor_id = null ): bool {
+		/**
+		 * Filter whether to use pre-loaded product selection.
+		 *
+		 * @param bool     $use_preloaded Whether to use pre-loaded selection. Default true.
+		 * @param int|null $vendor_id     The vendor ID if in Dokan context, null otherwise.
+		 */
+		return apply_filters( 'gr8r_woo_session_bundles_use_preloaded_products', true, $vendor_id );
 	}
 
 	/**
