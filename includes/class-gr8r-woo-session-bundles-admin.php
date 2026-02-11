@@ -639,9 +639,9 @@ class GR8R_Woo_Session_Bundles_Admin {
 			array(
 				'ajax_url'                => admin_url( 'admin-ajax.php' ),
 				'nonce'                   => wp_create_nonce( 'gr8r_woo_session_bundles_admin_nonce' ),
-				'bundled_product_details' => $bundled_product_details,
+				'bundled_product_details' => (object) $bundled_product_details,
 				'available_products'      => $available_products,
-				'use_preloaded_products'  => $use_preloaded_products,
+				'use_preloaded_products'  => $use_preloaded_products ? 'yes' : 'no',
 				'product_types'           => GR8R_Woo_Session_Bundles_Configuration::get_instance()->get_supported_product_types(),
 				'strings'                 => array(
 					'select_products'   => __( 'Select a product...', 'gr8r-woo-session-bundles' ),

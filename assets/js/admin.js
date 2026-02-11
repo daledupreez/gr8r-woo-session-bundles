@@ -9,7 +9,7 @@ jQuery(document).ready(function($) {
 
 	var bundledSessions = {};
 
-	var usePreloadedProducts = gr8r_woo_session_bundles_admin.use_preloaded_products ?? false;
+	var usePreloadedProducts = 'yes' === ( gr8r_woo_session_bundles_admin.use_preloaded_products ?? 'no' );
 
 	function getBundledProductIds() {
 		return Object.keys( bundledSessions );
