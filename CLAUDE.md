@@ -15,6 +15,9 @@ GR8R Session Bundles is a WordPress plugin for WooCommerce that enables creating
 - `GR8R_Woo_Session_Bundles_Configuration` - Centralized config for product types and validity periods
 - `GR8R_Woo_Session_Bundles_Coupon_Utils` - Coupon generation and management
 
+**Static Utility Classes:**
+- `GR8R_Woo_Session_Bundles_Logger` - Wraps `wc_get_logger()`; all plugin logging goes through here. Logs appear under WooCommerce > Status > Logs (source: `gr8r-session-bundles`). `debug/info/notice` are suppressed unless the logging level filter is set to `'debug'`; `warning` and above always log.
+
 **Utility Files (procedural):**
 - `gr8r-woo-session-bundles-product-utils.php` - Product meta CRUD (`_gr8r_*` meta keys)
 - `gr8r-woo-session-bundles-order-utils.php` - Order item meta CRUD
@@ -34,6 +37,7 @@ Filters for customization:
 - `gr8r_woo_session_bundles_coupon_expiry_time` - Coupon expiry calculation
 - `gr8r_woo_session_bundles_apply_credits_to_cart` - Control auto-apply behavior
 - `gr8r_bundled_product_notice` - Frontend notice text
+- `gr8r_woo_session_bundles_logging_level` - Minimum log level string (`'debug'` or `'warning'`). Defaults to `'warning'`, which suppresses debug/info/notice entries.
 
 ## Development
 
