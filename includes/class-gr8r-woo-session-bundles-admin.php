@@ -815,6 +815,8 @@ class GR8R_Woo_Session_Bundles_Admin {
 	 */
 	protected function really_save_bundled_session_meta( $product, array $fields, ?int $dokan_vendor_id = null ) {
 		if ( ! isset( $fields['_gr8r_woo_session_bundles_meta_nonce'] ) || ! wp_verify_nonce( $fields['_gr8r_woo_session_bundles_meta_nonce'], 'gr8r_woo_session_bundles_meta' ) ) {
+			$product_id = $product instanceof WC_Product ? $product->get_id() : 'unknown';
+			GR8R_Woo_Session_Bundles_Logger::warning( "really_save_bundled_session_meta: nonce verification failed for product {$product_id}." );
 			return;
 		}
 
@@ -829,10 +831,12 @@ class GR8R_Woo_Session_Bundles_Admin {
 		$supported_product_types = GR8R_Woo_Session_Bundles_Configuration::get_instance()->get_supported_product_types();
 
 		if ( ! in_array( $product->get_type(), $supported_product_types, true ) ) {
+			GR8R_Woo_Session_Bundles_Logger::warning( "really_save_bundled_session_meta: product {$product->get_id()} has unsupported type '{$product->get_type()}'." );
 			return;
 		}
 
 		if ( $this->is_action_done( 'save_bundled_session_meta', $product->get_id() ) ) {
+			GR8R_Woo_Session_Bundles_Logger::warning( "really_save_bundled_session_meta: save_bundled_session_meta action already done for product {$product->get_id()}." );
 			return;
 		}
 
@@ -841,6 +845,12 @@ class GR8R_Woo_Session_Bundles_Admin {
 			$gr8r_bundled_sessions = json_decode( $fields['gr8r_bundled_sessions'], true );
 
 			if ( ! is_array( $gr8r_bundled_sessions ) ) {
+				GR8R_Woo_Session_Bundles_Logger::warning(
+					"really_save_bundled_session_meta: could not decode gr8r_bundled_sessions JSON for product {$product->get_id()}.",
+					[
+						'raw value' => $fields['gr8r_bundled_sessions'],
+					]
+				);
 				$gr8r_bundled_sessions = array();
 			} else {
 				// Basic value checks
@@ -869,6 +879,7 @@ class GR8R_Woo_Session_Bundles_Admin {
 
 		gr8r_session_bundles_save_product_bundle_meta( $product->get_id(), $gr8r_bundled_sessions );
 		gr8r_session_bundles_save_product_is_bundle_meta( $product->get_id(), true );
+		GR8R_Woo_Session_Bundles_Logger::debug( 'really_save_bundled_session_meta: saved bundle meta for product ' . $product->get_id() . ' with ' . count( $gr8r_bundled_sessions ) . ' bundled product(s).' );
 
 		// Save validity period fields only for non-subscription products
 		if ( 'subscription' !== $product->get_type() ) {
@@ -893,12 +904,22 @@ class GR8R_Woo_Session_Bundles_Admin {
 			// Only save if both are provided, otherwise delete
 			if ( null !== $validity_count && null !== $validity_period ) {
 				gr8r_session_bundles_save_product_validity_period_meta( $product->get_id(), $validity_count, $validity_period );
+				$action = 'saved';
 			} else {
 				gr8r_session_bundles_save_product_validity_period_meta( $product->get_id(), null, null );
+				$action = 'deleted';
 			}
+			GR8R_Woo_Session_Bundles_Logger::debug(
+				"really_save_bundled_session_meta: {$action} validity period meta for product {$product->get_id()}.",
+				[
+					'validity_count'  => $validity_count,
+					'validity_period' => $validity_period,
+				]
+			);
 		} else {
 			// For subscription products, ensure validity period is deleted
 			gr8r_session_bundles_save_product_validity_period_meta( $product->get_id(), null, null );
+			GR8R_Woo_Session_Bundles_Logger::debug( "really_save_bundled_session_meta: removed validity period meta for subscription product {$product->get_id()}." );
 		}
 
 		$this->mark_action_done( 'save_bundled_session_meta', $product->get_id() );

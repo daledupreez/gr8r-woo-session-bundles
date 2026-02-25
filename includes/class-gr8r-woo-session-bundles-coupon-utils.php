@@ -145,17 +145,31 @@ class GR8R_Woo_Session_Bundles_Coupon_Utils {
 	public function generate_coupon_for_product_and_user( $product_id, $quantity, $order_item, $purchased_product, $user_id = null ): void {
 		$product = wc_get_product( $product_id );
 		if ( ! $product ) {
+			GR8R_Woo_Session_Bundles_Logger::warning( "generate_coupon_for_product_and_user: product {$product_id} not found." );
 			return;
 		}
 
 		$order = $order_item->get_order();
 		if ( ! $order ) {
+			GR8R_Woo_Session_Bundles_Logger::warning( "generate_coupon_for_product_and_user: order not found for order item {$order_item->get_id()}." );
 			return;
 		}
 
 		if ( null === $user_id ) {
 			$user_id = $order->get_customer_id();
 		}
+
+		GR8R_Woo_Session_Bundles_Logger::debug(
+			'generate_coupon_for_product_and_user: generating coupon',
+			[
+				'product_id'           => $product_id,
+				'quantity'             => $quantity,
+				'order_id'             => $order->get_id(),
+				'order_item_id'        => $order_item->get_id(),
+				'purchased_product_id' => $purchased_product->get_id(),
+				'user_id'              => $user_id,
+			]
+		);
 
 		$coupon_title_prefix = $this->get_coupon_title_prefix( $product_id, $user_id, $purchased_product );
 
@@ -182,6 +196,7 @@ class GR8R_Woo_Session_Bundles_Coupon_Utils {
 				// Fall back to default
 				$coupon_expiry_time = '+3 months';
 			}
+			GR8R_Woo_Session_Bundles_Logger::debug( "generate_coupon_for_product_and_user: validity period for order item {$order_item->get_id()} is '{$coupon_expiry_time}'." );
 		} else {
 			$coupon_expiry_time = null;
 
@@ -214,6 +229,7 @@ class GR8R_Woo_Session_Bundles_Coupon_Utils {
 					$coupon_expiry_time = '+1 month';
 				}
 			}
+			GR8R_Woo_Session_Bundles_Logger::debug( "generate_coupon_for_product_and_user: subscription interval for order item {$order_item->get_id()} is '{$coupon_expiry_time}'." );
 		}
 
 		/**
@@ -248,17 +264,20 @@ class GR8R_Woo_Session_Bundles_Coupon_Utils {
 		 */
 		$coupon_generated = apply_filters( 'gr8r_woo_session_bundles_generate_coupon_for_product_and_user', false, $product_id, $quantity, $order_item, $purchased_product, $user_id, $coupon_expiry_datetime );
 		if ( true === $coupon_generated ) {
+			GR8R_Woo_Session_Bundles_Logger::debug( "generate_coupon_for_product_and_user: coupon generation overridden by filter for product {$product_id}, user {$user_id}, order {$order->get_id()}." );
 			return;
 		}
 
 		$coupon_created_time = new WC_DateTime();
 
+		GR8R_Woo_Session_Bundles_Logger::debug( "generate_coupon_for_product_and_user: generating {$quantity} coupon(s) for product {$product_id}, user {$user_id}, order {$order->get_id()}, expiry {$coupon_expiry_datetime->format( 'Y-m-d' )}." );
+
 		for ( $i = 0; $i < $quantity; $i++ ) {
 			$coupon_code = $this->generate_coupon_code( $coupon_title_prefix );
 
-			// TODO: Handle the case where we could not generate a valid coupon code.
-
-			if ( null !== $coupon_code ) {
+			if ( null === $coupon_code ) {
+				GR8R_Woo_Session_Bundles_Logger::error( "generate_coupon_for_product_and_user: failed to generate unique coupon code for product {$product_id}, user {$user_id} after 20 attempts." );
+			} else {
 				$coupon = new WC_Coupon( $coupon_code );
 				$coupon->set_discount_type( 'percent' );
 				$coupon->set_amount( 100 );
@@ -279,7 +298,11 @@ class GR8R_Woo_Session_Bundles_Coupon_Utils {
 
 				$save_result = $coupon->save();
 
-				// TODO: Handle save errors.
+				if ( ! $save_result ) {
+					GR8R_Woo_Session_Bundles_Logger::error( "generate_coupon_for_product_and_user: failed to save coupon '{$coupon_code}' for product {$product_id}, order {$order->get_id()}." );
+				} else {
+					GR8R_Woo_Session_Bundles_Logger::debug( "generate_coupon_for_product_and_user: coupon '{$coupon_code}' saved (id: {$save_result})." );
+				}
 			}
 		}
 	}
@@ -308,8 +331,11 @@ class GR8R_Woo_Session_Bundles_Coupon_Utils {
 			if ( ! $this->coupon_exists( $coupon_code ) ) {
 				return $coupon_code;
 			}
+
+			GR8R_Woo_Session_Bundles_Logger::debug( "generate_coupon_code: collision on '{$coupon_code}', attempt {$count}." );
 		}
 
+		GR8R_Woo_Session_Bundles_Logger::warning( "generate_coupon_code: exhausted 20 attempts for prefix '{$coupon_title_prefix}'." );
 		return null;
 	}
 

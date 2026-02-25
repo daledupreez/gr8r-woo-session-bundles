@@ -316,10 +316,13 @@ class GR8R_Woo_Session_Bundles_Frontend {
 
 		$coupon_id = GR8R_Woo_Session_Bundles_Coupon_Utils::get_instance()->get_next_available_coupon_id( $product_id, $user_id );
 		if ( null === $coupon_id ) {
+			GR8R_Woo_Session_Bundles_Logger::debug( "maybe_add_coupon_to_cart: no available coupon for product {$product_id}, user {$user_id}." );
 			return;
 		}
 
 		$coupon = new WC_Coupon( $coupon_id );
+
+		GR8R_Woo_Session_Bundles_Logger::debug( "maybe_add_coupon_to_cart: applying coupon '{$coupon->get_code()}' (id: {$coupon_id}) for product {$product_id}, user {$user_id}." );
 
 		WC()->cart->apply_coupon( $coupon->get_code() );
 	}
@@ -457,11 +460,14 @@ class GR8R_Woo_Session_Bundles_Frontend {
 	public function handle_payment_complete( $order_id, $transaction_id ): void {
 		$order = wc_get_order( $order_id );
 
-		if ( ! $order ) {
+		if ( ! $order instanceof WC_Order ) {
+			GR8R_Woo_Session_Bundles_Logger::warning( "handle_payment_complete: order {$order_id} not found." );
 			return;
 		}
 
 		$order_items = $order->get_items();
+
+		GR8R_Woo_Session_Bundles_Logger::debug( 'handle_payment_complete: processing order ' . $order_id . ', ' . count( $order_items ) . ' item(s).' );
 
 		foreach ( $order_items as $order_item ) {
 			if ( gr8r_session_bundles_is_bundle_order_item( $order_item ) ) {
@@ -476,18 +482,24 @@ class GR8R_Woo_Session_Bundles_Frontend {
 	 * @param WC_Order_Item_Product $order_item The order item.
 	 */
 	protected function generate_credits_for_order_item( $order_item ): void {
+		GR8R_Woo_Session_Bundles_Logger::debug( "generate_credits_for_order_item: generating credits for order item {$order_item->get_id()}." );
+
 		$purchased_product_id = $order_item->get_product_id();
 
 		$bundled_products = gr8r_session_bundles_get_order_item_bundle_meta( $order_item->get_id() );
 
 		if ( empty( $bundled_products ) ) {
+			GR8R_Woo_Session_Bundles_Logger::warning( "generate_credits_for_order_item: no bundled products found for order item {$order_item->get_id()}." );
 			return;
 		}
 
 		$purchased_product = wc_get_product( $purchased_product_id );
 		if ( ! $purchased_product ) {
+			GR8R_Woo_Session_Bundles_Logger::warning( "generate_credits_for_order_item: product {$purchased_product_id} not found for order item {$order_item->get_id()}." );
 			return;
 		}
+
+		GR8R_Woo_Session_Bundles_Logger::debug( 'generate_credits_for_order_item: generating credits for ' . count( $bundled_products ) . " bundled product(s) in order item {$order_item->get_id()}." );
 
 		$coupon_utils = GR8R_Woo_Session_Bundles_Coupon_Utils::get_instance();
 		foreach ( $bundled_products as $product_id => $quantity ) {
