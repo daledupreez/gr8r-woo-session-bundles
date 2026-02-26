@@ -134,6 +134,26 @@ class GR8R_Woo_Session_Bundles_Coupon_Utils {
 	}
 
 	/**
+	 * Count how many coupons have already been generated for a specific product within an order item.
+	 *
+	 * Used by the "regenerate missing coupons" action to determine how many coupons are still needed.
+	 *
+	 * @param int $order_item_id The order item ID.
+	 * @param int $product_id    The bundled product ID to count coupons for.
+	 * @return int The number of existing coupons for that product/order-item combination.
+	 */
+	public function get_existing_coupon_count_for_order_item_product( int $order_item_id, int $product_id ): int {
+		$coupons = $this->get_coupons_for_order_item( $order_item_id );
+		$count   = 0;
+		foreach ( $coupons as $coupon ) {
+			if ( in_array( $product_id, $coupon->get_product_ids( 'edit' ), true ) ) {
+				$count++;
+			}
+		}
+		return $count;
+	}
+
+	/**
 	 * Generate a coupon for a product.
 	 *
 	 * @param int                   $product_id        The bundled product ID.
@@ -142,7 +162,7 @@ class GR8R_Woo_Session_Bundles_Coupon_Utils {
 	 * @param WC_Product            $purchased_product The purchased product that is causing us to generate a coupon/credits.
 	 * @param int                   $user_id           The user ID to generate the coupon/credits for.
 	 */
-	public function generate_coupon_for_product_and_user( $product_id, $quantity, $order_item, $purchased_product, $user_id = null ): void {
+	public function generate_coupon_for_product_and_user( $product_id, $quantity, $order_item, $purchased_product, $user_id = null, ?WC_DateTime $payment_date = null ): void {
 		$product = wc_get_product( $product_id );
 		if ( ! $product ) {
 			GR8R_Woo_Session_Bundles_Logger::warning( "generate_coupon_for_product_and_user: product {$product_id} not found." );
@@ -246,7 +266,14 @@ class GR8R_Woo_Session_Bundles_Coupon_Utils {
 		$coupon_expiry_time = apply_filters( 'gr8r_woo_session_bundles_coupon_expiry_time', $coupon_expiry_time, $purchased_product, $product_id, $quantity, $user_id );
 
 		// Create new timestamp using the expiration time, reset to midnight on that day, and then add one day.
-		$coupon_expiry_datetime = new WC_DateTime( $coupon_expiry_time );
+		// When a payment_date is provided and expiry_time is a relative modifier (e.g. "+3 months"),
+		// calculate expiry relative to the original payment date rather than "now".
+		if ( null !== $payment_date && 1 === preg_match( '/^[+\-]/', $coupon_expiry_time ) ) {
+			$coupon_expiry_datetime = clone $payment_date;
+			$coupon_expiry_datetime->modify( $coupon_expiry_time );
+		} else {
+			$coupon_expiry_datetime = new WC_DateTime( $coupon_expiry_time );
+		}
 		$coupon_expiry_datetime->setTime( 0, 0, 0, 0 );
 		$coupon_expiry_datetime->add( new DateInterval( 'P1D' ) );
 

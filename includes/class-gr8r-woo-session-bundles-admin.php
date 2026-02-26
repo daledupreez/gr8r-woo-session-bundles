@@ -47,6 +47,8 @@ class GR8R_Woo_Session_Bundles_Admin {
 		// Order admin hooks.
 		add_filter( 'woocommerce_hidden_order_itemmeta', array( $this, 'hide_order_item_bundle_meta' ) );
 		add_action( 'woocommerce_after_order_itemmeta', array( $this, 'render_order_line_item_coupons' ), 50, 2 );
+		add_filter( 'woocommerce_order_actions', array( $this, 'add_regenerate_coupons_order_action' ), 10, 2 );
+		add_action( 'woocommerce_order_action_gr8r_regenerate_missing_coupons', array( $this, 'handle_regenerate_missing_coupons_action' ), 10, 1 );
 
 		// Coupon edit screen hooks.
 		add_action( 'woocommerce_coupon_options', array( $this, 'render_coupon_session_bundle_fields' ), 10, 2 );
@@ -298,6 +300,116 @@ class GR8R_Woo_Session_Bundles_Admin {
 		$hidden_order_itemmeta[] = '_gr8r_bundle_validity_count';
 		$hidden_order_itemmeta[] = '_gr8r_bundle_validity_period';
 		return $hidden_order_itemmeta;
+	}
+
+	/**
+	 * Add "Regenerate missing session bundle coupons" to the Order Actions dropdown when the order
+	 * contains at least one session bundle item.
+	 *
+	 * WooCommerce verifies its own form nonce before firing order action hooks, so no separate
+	 * nonce handling is required here.
+	 *
+	 * @param array    $actions The existing order actions.
+	 * @param WC_Order $order   The current order.
+	 * @return array The (possibly augmented) order actions.
+	 */
+	public function add_regenerate_coupons_order_action( array $actions, WC_Order $order ): array {
+		foreach ( $order->get_items() as $item ) {
+			if ( gr8r_session_bundles_is_bundle_order_item( $item ) ) {
+				$actions['gr8r_regenerate_missing_coupons'] = __( 'Regenerate missing session bundle coupons', 'gr8r-woo-session-bundles' );
+				break;
+			}
+		}
+		return $actions;
+	}
+
+	/**
+	 * Handle the "Regenerate missing session bundle coupons" order action.
+	 *
+	 * For each bundle order item, determines how many coupons already exist per bundled product
+	 * and generates only the missing ones. Expiry is calculated relative to the order's original
+	 * payment date to preserve intended coupon lifetimes.
+	 *
+	 * @param WC_Order $order The order being processed.
+	 */
+	public function handle_regenerate_missing_coupons_action( WC_Order $order ): void {
+		if ( ! current_user_can( 'edit_shop_orders' ) ) {
+			GR8R_Woo_Session_Bundles_Logger::warning( 'handle_regenerate_missing_coupons_action: capability check failed.' );
+			return;
+		}
+
+		$payment_date = $order->get_date_paid();
+		if ( ! $payment_date instanceof WC_DateTime ) {
+			GR8R_Woo_Session_Bundles_Logger::error( 'handle_regenerate_missing_coupons_action: payment date not found for order ' . $order->get_id() . '.' );
+			return;
+		}
+
+		$coupon_utils      = GR8R_Woo_Session_Bundles_Coupon_Utils::get_instance();
+		$total_regenerated = 0;
+		$items_processed   = 0;
+
+		foreach ( $order->get_items() as $order_item ) {
+			if ( ! gr8r_session_bundles_is_bundle_order_item( $order_item ) ) {
+				continue;
+			}
+
+			$items_processed++;
+			$order_item_id    = $order_item->get_id();
+			$bundled_products = gr8r_session_bundles_get_order_item_bundle_meta( $order_item_id );
+
+			if ( empty( $bundled_products ) ) {
+				GR8R_Woo_Session_Bundles_Logger::warning( "handle_regenerate_missing_coupons_action: no bundled products in order item {$order_item_id}." );
+				continue;
+			}
+
+			$purchased_product = wc_get_product( $order_item->get_product_id() );
+			if ( ! $purchased_product ) {
+				GR8R_Woo_Session_Bundles_Logger::warning( "handle_regenerate_missing_coupons_action: purchased product not found for order item {$order_item_id}." );
+				continue;
+			}
+
+			foreach ( $bundled_products as $product_id => $quantity ) {
+				$product_id     = (int) $product_id;
+				$existing_count = $coupon_utils->get_existing_coupon_count_for_order_item_product( $order_item_id, $product_id );
+				$missing_count  = max( 0, $quantity - $existing_count );
+
+				GR8R_Woo_Session_Bundles_Logger::debug(
+					"handle_regenerate_missing_coupons_action: order item {$order_item_id}, product {$product_id}: {$existing_count} existing, {$quantity} expected, {$missing_count} to generate."
+				);
+
+				if ( $missing_count > 0 ) {
+					$coupon_utils->generate_coupon_for_product_and_user(
+						$product_id,
+						$missing_count,
+						$order_item,
+						$purchased_product,
+						null,
+						$payment_date
+					);
+					$total_regenerated += $missing_count;
+				}
+			}
+		}
+
+		if ( 0 === $total_regenerated ) {
+			GR8R_Woo_Session_Bundles_Logger::info( "handle_regenerate_missing_coupons_action: no missing coupons to regenerate for order " . $order->get_id() . "." );
+			return;
+		}
+
+		/* translators: 1: number of coupons regenerated, 2: number of bundle items processed */
+		$note = sprintf(
+			_n(
+				'Regenerated %1$d missing session bundle coupon across %2$d bundle item(s).',
+				'Regenerated %1$d missing session bundle coupons across %2$d bundle item(s).',
+				$total_regenerated,
+				'gr8r-woo-session-bundles'
+			),
+			$total_regenerated,
+			$items_processed
+		);
+		$order->add_order_note( $note );
+
+		GR8R_Woo_Session_Bundles_Logger::debug( "handle_regenerate_missing_coupons_action: {$note}" );
 	}
 
 	/**
