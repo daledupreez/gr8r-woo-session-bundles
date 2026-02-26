@@ -503,7 +503,14 @@ class GR8R_Woo_Session_Bundles_Frontend {
 
 		$coupon_utils = GR8R_Woo_Session_Bundles_Coupon_Utils::get_instance();
 		foreach ( $bundled_products as $product_id => $quantity ) {
-			$coupon_utils->generate_coupon_for_product_and_user( $product_id, $quantity, $order_item, $purchased_product );
+			$existing_coupon_count = $coupon_utils->get_existing_coupon_count_for_order_item_product( $order_item->get_id(), $product_id );
+			if ( $existing_coupon_count >= $quantity ) {
+				GR8R_Woo_Session_Bundles_Logger::warning( "generate_credits_for_order_item: coupons already exist for order item {$order_item->get_id()} and product {$product_id}." );
+				continue;
+			}
+
+			$new_coupon_count = $quantity - $existing_coupon_count;
+			$coupon_utils->generate_coupon_for_product_and_user( $product_id, $new_coupon_count, $order_item, $purchased_product );
 		}
 	}
 }
