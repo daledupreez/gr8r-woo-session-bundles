@@ -220,29 +220,26 @@ class GR8R_Woo_Session_Bundles_Coupon_Utils {
 		} else {
 			$coupon_expiry_time = null;
 
-			$subscription_orders = wc_get_orders(
-				[
-					'customer'     => $customer_id ? $customer_id : $email,
-					'product_id'   => $purchased_product->get_id(),
-					'parent'       => $order->get_id(),
-					'type'         => 'shop_subscription',
-					'variation_id' => $purchased_product->get_variation_id(),
-					'limit'        => 1,
-					'orderby'      => 'date',
-					'order'        => 'DESC',
-				]
-			);
+			if ( function_exists( 'wcs_get_subscriptions' ) ) {
+				$subscriptions = wcs_get_subscriptions(
+					[
+						'order_id'               => $order->get_id(),
+						'product_id'             => $purchased_product->get_id(),
+						'subscriptions_per_page' => 1,
+					]
+				);
 
-			if ( ! empty( $subscription_orders ) ) {
-				$subscription_order = reset( $subscription_orders );
-				if ( class_exists( 'WC_Subscription' ) && $subscription_order instanceof WC_Subscription ) {
-					$coupon_expiry_time = $subscription_order->get_date( 'next_payment', 'site' );
+				if ( ! empty( $subscriptions ) ) {
+					$subscription = reset( $subscriptions );
+					if ( $subscription instanceof WC_Subscription ) {
+						$coupon_expiry_time = $subscription->get_date( 'next_payment', 'site' );
+					}
 				}
 			}
 
 			if ( empty( $coupon_expiry_time ) ) {
-				$billing_period   = $purchased_product->get_billing_period();
-				$billing_interval = $purchased_product->get_billing_interval();
+				$billing_period   = class_exists( 'WC_Subscriptions_Product' ) ? WC_Subscriptions_Product::get_period( $purchased_product ) : null;
+				$billing_interval = class_exists( 'WC_Subscriptions_Product' ) ? WC_Subscriptions_Product::get_interval( $purchased_product ) : null;
 				if ( $billing_period && $billing_interval ) {
 					$coupon_expiry_time = "+{$billing_interval} {$billing_period}";
 				} else {
